@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@300;500;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-serif: "Libre Baskerville", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0C0B0A] text-[#E4E3E0] antialiased selection:bg-[#D4AF37]/30 selection:text-[#D4AF37];
+    background-image: 
+      linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+      radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+      url("https://www.transparenttextures.com/patterns/dark-matter.png");
+    background-size: 40px 40px, 40px 40px, 100% 100%, auto;
+  }
+}
+
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+.parchment {
+  @apply bg-[#F5F5F0] text-[#2C1E12] border border-[#D4AF37]/30;
+  background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
+}
+
+.tactical-border {
+  @apply border border-white/5 hover:border-[#D4AF37]/30 transition-colors duration-500;
+}
+
+.neural-glow {
+  @apply shadow-[0_0_30px_rgba(212,175,55,0.1)];
+}
+
+.neural-glow-hover:hover {
+  @apply shadow-[0_0_40px_rgba(212,175,55,0.2)];
+}
+
+.artifact-gradient {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-black/20;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[#D4AF37]/20 rounded-full hover:bg-[#D4AF37]/40 transition-colors;
+}
+

@@ -1,0 +1,5 @@
+{
+  "name": "ArcheoMind Neural Gateway",
+  "description": "A high-tech digital field journal and neural reconstruction platform for archaeological discovery, artifact analysis, and global excavation oversight.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}
