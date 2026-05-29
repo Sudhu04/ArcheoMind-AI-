@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Compass, Mail, User as UserIcon, ArrowRight, ShieldCheck, Loader2, Lock } from 'lucide-react';
+import { Compass, Mail, User as UserIcon, ArrowRight, ShieldCheck, Loader2, Lock, Sparkles, Eye, EyeOff, FlaskConical, CircleUserRound } from 'lucide-react';
 import { authService } from '../services/authService';
 import { User } from '../types';
+import { DUMMY_RESEARCHERS } from '../constants/dummyUsers';
 
 interface AuthGatewayProps {
   onLogin: (user: User) => void;
@@ -11,11 +12,35 @@ interface AuthGatewayProps {
 export default function AuthGateway({ onLogin }: AuthGatewayProps) {
   const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
   const [isSignup, setIsSignup] = useState(false);
+  const [showDemoUsers, setShowDemoUsers] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleDummyLogin = async (dummy: any) => {
+    setIsLoading(true);
+    try {
+      const user: User = {
+        id: dummy.id,
+        email: dummy.email,
+        name: dummy.name,
+        role: 'researcher',
+        joinedAt: Date.now(),
+        specialization: dummy.specialization,
+        xp: 2500,
+        level: 5
+      };
+      const loggedUser = await authService.loginAsDummy(user);
+      onLogin(loggedUser);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,13 +49,19 @@ export default function AuthGateway({ onLogin }: AuthGatewayProps) {
 
     try {
       if (isSignup) {
-        const user = await authService.signup(email, name, password, 'user');
+        const targetRole = activeTab === 'admin' ? 'admin' : 'researcher';
+        const user = await authService.signup(email, name, password, targetRole);
         onLogin(user);
       } else {
         const user = await authService.login(email, password);
-        // If admin tab is active, ensure user is admin
         if (activeTab === 'admin' && user.role !== 'admin') {
-          authService.logout();
+          // Double check if it's whitelisted but somehow didn't upgrade
+          if (email === 'sudhanvams7@gmail.com' || email === 'kratosadmin@archeomind.ai') {
+            user.role = 'admin'; // Optimistic upgrade if logic somehow lagged
+            onLogin(user);
+            return;
+          }
+          await authService.logout();
           throw new Error('Unauthorized: Admin access only');
         }
         onLogin(user);
@@ -49,152 +80,200 @@ export default function AuthGateway({ onLogin }: AuthGatewayProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Cinematic Background Image */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1544911845-1f34a3eb46b1?auto=format&fit=crop&q=80&w=2000" 
-          alt="Ancient Pyramids" 
-          className="w-full h-full object-cover opacity-20 scale-105"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0C0B0A] via-transparent to-[#0C0B0A]" />
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
-
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D4AF37]/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#D4AF37]/5 rounded-full blur-[120px] animate-pulse delay-1000" />
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-md z-10"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-xl z-10 grid grid-cols-1 lg:grid-cols-5 gap-0 overflow-hidden rounded-[3rem] shadow-2xl border border-white/5"
       >
-        <div className="text-center mb-12">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-flex items-center justify-center w-24 h-24 bg-[#D4AF37] rounded-[2.5rem] shadow-[0_0_60px_rgba(212,175,55,0.3)] mb-8"
-          >
-            {activeTab === 'admin' ? (
-              <ShieldCheck className="w-12 h-12 text-[#0C0B0A]" />
-            ) : (
-              <UserIcon className="w-12 h-12 text-[#0C0B0A]" />
-            )}
-          </motion.div>
-          <h1 className="text-6xl font-black tracking-tighter italic text-white mb-2 uppercase font-display">
-            {activeTab === 'admin' ? 'Commander' : 'Researcher'}
-          </h1>
-          <p className="text-[#D4AF37] uppercase tracking-[0.4em] text-[10px] font-black opacity-60">ArcheoMind Neural Access</p>
+        <div className="lg:col-span-2 radiant-gradient p-12 flex flex-col justify-between relative overflow-hidden">
+          <div className="relative z-10">
+            <motion.div 
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-12 border border-white/20"
+            >
+              <Compass className="w-8 h-8 text-white" />
+            </motion.div>
+            <h2 className="text-3xl font-black text-white leading-tight mb-4">
+              Gateway to <br/> Neural <span className="text-white/60 font-outline">Archive</span>
+            </h2>
+            <p className="text-indigo-100/60 text-sm font-medium leading-relaxed">
+              Establishing a secure temporal connection to the ArcheoMind global node.
+            </p>
+          </div>
+          
+          <div className="relative z-10 space-y-4">
+             <div className="flex items-center gap-4">
+                <div className="w-1 h-1 bg-white rounded-full animate-ping" />
+                <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.5em]">Protocol Stable</span>
+             </div>
+             <p className="text-[10px] font-mono text-white/30 truncate">NODES: 42 // SYNC: OPTIMAL</p>
+          </div>
+
+          <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="bg-[#080706]/80 backdrop-blur-3xl border border-[#D4AF37]/20 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
-          <div className="flex gap-4 mb-10 p-1.5 bg-white/5 rounded-2xl border border-white/5">
+        <div className="lg:col-span-3 bg-slate-900 p-12 relative">
+          <div className="flex gap-6 mb-12">
             <button 
               onClick={() => toggleTab('user')}
-              className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'user' ? 'bg-[#D4AF37] text-[#0C0B0A] shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all pb-2 border-b-2 ${activeTab === 'user' ? 'text-indigo-400 border-indigo-400' : 'text-slate-600 border-transparent hover:text-slate-400'}`}
             >
-              User Login
+              Researcher
             </button>
             <button 
               onClick={() => toggleTab('admin')}
-              className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-[#D4AF37] text-[#0C0B0A] shadow-lg' : 'text-white/40 hover:text-white'}`}
+              className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all pb-2 border-b-2 ${activeTab === 'admin' ? 'text-indigo-400 border-indigo-400' : 'text-slate-600 border-transparent hover:text-slate-400'}`}
             >
-              Admin Login
+              Commander
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <AnimatePresence mode="wait">
               {isSignup && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="space-y-3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-2"
                 >
-                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-2">Full Name</label>
-                  <div className="relative">
-                    <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4AF37]/40" />
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Profile Identity</label>
+                  <div className="relative group">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
                     <input 
                       type="text" 
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Dr. Indiana Jones"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#D4AF37]/50 transition-all text-white placeholder:text-white/10"
+                      placeholder="Identified Explorer"
+                      className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:outline-none focus:border-indigo-500/50 transition-all text-slate-300 placeholder:text-slate-700"
                     />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-2">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4AF37]/40" />
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Neural Credential</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
                 <input 
                   type="email" 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="researcher@archeomind.ai"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#D4AF37]/50 transition-all text-white placeholder:text-white/10"
+                  placeholder="name@archeomind.link"
+                  className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:outline-none focus:border-indigo-500/50 transition-all text-slate-300 placeholder:text-slate-700"
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D4AF37]/40" />
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Access Cipher</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-sm focus:outline-none focus:border-[#D4AF37]/50 transition-all text-white placeholder:text-white/10"
+                  className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-12 text-sm font-medium focus:outline-none focus:border-indigo-500/50 transition-all text-slate-300 placeholder:text-slate-700"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-600 hover:text-indigo-400 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest text-center bg-red-500/10 p-3 rounded-xl border border-red-500/20">{error}</p>}
+            {error && (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center bg-rose-500/5 border border-rose-500/20 p-4 rounded-2xl">
+                {error}
+              </motion.p>
+            )}
 
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full py-6 bg-[#D4AF37] hover:bg-[#C4A030] text-[#0C0B0A] font-black rounded-2xl transition-all flex items-center justify-center gap-4 shadow-[0_0_40px_rgba(212,175,55,0.2)] group hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-5 radiant-gradient text-white font-black rounded-2xl transition-all flex items-center justify-center gap-4 shadow-2xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span className="uppercase tracking-[0.2em]">{isSignup ? 'Sign Up' : 'Login'}</span>
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                  <span className="uppercase tracking-[0.3em] text-[11px]">{isSignup ? 'Init Registration' : 'Authenticate Link'}</span>
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-10 text-center space-y-4">
-            {activeTab === 'user' && (
-              <button 
-                onClick={() => setIsSignup(!isSignup)}
-                className="text-[10px] text-white/40 hover:text-[#D4AF37] font-black uppercase tracking-[0.2em] transition-colors"
-              >
-                {isSignup ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
-              </button>
-            )}
-            {activeTab === 'admin' && (
-              <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">
-                Commander access requires prior authorization
-              </p>
+          <div className="mt-10 text-center space-y-6">
+            {activeTab === 'user' ? (
+              <div className="space-y-6">
+                <button 
+                  onClick={() => setIsSignup(!isSignup)}
+                  className="text-[10px] text-slate-600 hover:text-indigo-400 font-black uppercase tracking-widest transition-colors block w-full"
+                >
+                  {isSignup ? 'Return to Authentication' : "Request New Credentials"}
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-800" />
+                  </div>
+                  <div className="relative flex justify-center text-[8px] font-black uppercase tracking-[0.4em] text-slate-700 bg-slate-900 px-4">
+                    Neural Lab Access
+                  </div>
+                </div>
+
+                {!showDemoUsers ? (
+                  <button 
+                    onClick={() => setShowDemoUsers(true)}
+                    className="flex items-center gap-3 mx-auto px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition-all text-[9px] font-bold uppercase tracking-widest"
+                  >
+                    <FlaskConical className="w-3.5 h-3.5" />
+                    Bypass to Researcher Demo
+                  </button>
+                ) : (
+                  <div className="grid grid-cols-5 gap-3">
+                    {DUMMY_RESEARCHERS.map((dummy) => (
+                      <button
+                        key={dummy.id}
+                        type="button"
+                        onClick={() => handleDummyLogin(dummy)}
+                        className="flex flex-col items-center gap-2 group"
+                      >
+                        <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-700 group-hover:border-indigo-500 group-hover:bg-indigo-500/10 transition-all overflow-hidden relative">
+                           <CircleUserRound className="w-6 h-6 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                           <div className="absolute inset-0 bg-indigo-500 opacity-0 group-hover:opacity-10 transition-opacity" />
+                        </div>
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{dummy.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 mt-4 opacity-50">
+                <ShieldCheck className="w-5 h-5 text-slate-800" />
+                <p className="text-[10px] text-slate-900 font-bold uppercase tracking-widest">
+                  Secure Command Center Access
+                </p>
+              </div>
             )}
           </div>
         </div>

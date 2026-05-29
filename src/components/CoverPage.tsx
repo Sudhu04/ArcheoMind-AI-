@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Compass, ArrowRight } from 'lucide-react';
+import { Compass, ArrowRight, Sparkles } from 'lucide-react';
 
 interface CoverPageProps {
   onEnter: () => void;
@@ -8,103 +8,114 @@ interface CoverPageProps {
 
 export default function CoverPage({ onEnter }: CoverPageProps) {
   return (
-    <div className="fixed inset-0 z-[200] bg-[#0C0B0A] flex items-center justify-center overflow-hidden">
-      {/* Background Cinematic Image */}
-      <div className="absolute inset-0">
-        <img 
-          src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=2000" 
-          alt="Ancient Ruins" 
-          className="w-full h-full object-cover opacity-30 scale-110"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0C0B0A] via-transparent to-[#0C0B0A]" />
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
-
-      {/* Animated Particles/Dust */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ 
-              x: Math.random() * window.innerWidth, 
-              y: Math.random() * window.innerHeight,
-              opacity: 0 
-            }}
-            animate={{ 
-              y: [null, Math.random() * -100],
-              opacity: [0, 0.5, 0]
-            }}
-            transition={{ 
-              duration: 5 + Math.random() * 5, 
-              repeat: Infinity,
-              delay: Math.random() * 5
-            }}
-            className="w-1 h-1 bg-[#D4AF37]/40 rounded-full blur-[1px]"
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex items-center justify-center overflow-hidden">
+      {/* Background Image with Cinematic Overlay */}
+      <div className="absolute inset-0 z-0">
+        <motion.div
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.5 }}
+          transition={{ duration: 4, ease: "easeOut" }}
+          className="w-full h-full"
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?auto=format&fit=crop&q=80&w=2000" 
+            alt="Ancient Discovery" 
+            className="w-full h-full object-cover saturate-0 contrast-150 mix-blend-overlay opacity-60"
+            referrerPolicy="no-referrer"
           />
-        ))}
+        </motion.div>
+        {/* Dynamic Scanning Line */}
+        <motion.div 
+          animate={{ y: ['0%', '100%'] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          className="absolute top-0 inset-x-0 h-[2px] bg-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.5)] z-10"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(99,102,241,0.1),transparent)]" />
       </div>
 
-      <div className="relative z-10 text-center space-y-12 px-6">
+      <div className="relative z-20 text-center space-y-16 px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          className="inline-flex items-center justify-center w-32 h-32 bg-[#D4AF37] rounded-[3rem] shadow-[0_0_100px_rgba(212,175,55,0.3)] mb-8"
+          className="relative inline-flex items-center justify-center p-8 lg:p-12"
         >
-          <Compass className="w-16 h-16 text-[#0C0B0A]" />
+          {/* Animated Rings */}
+          <div className="absolute inset-0 border border-indigo-500/10 rounded-full animate-[spin_20s_linear_infinite]" />
+          <div className="absolute inset-2 border border-indigo-500/5 rounded-full animate-[spin_30s_linear_infinite_reverse]" />
+          
+          <div className="w-32 h-32 lg:w-40 lg:h-40 bg-indigo-500/10 backdrop-blur-3xl rounded-[3rem] border border-indigo-500/20 flex items-center justify-center relative group">
+            <Compass className="w-16 h-16 text-indigo-400 group-hover:scale-110 transition-transform duration-700" />
+          </div>
         </motion.div>
 
-        <div className="space-y-4">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="text-8xl md:text-9xl font-black tracking-tighter italic font-display leading-none text-white"
-          >
-            ARCHEO<span className="text-[#D4AF37]">MIND</span>
-          </motion.h1>
+        <div className="space-y-6">
+          <div className="space-y-2">
+             <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="flex items-center justify-center gap-4 mb-4"
+             >
+                <div className="h-[1px] w-12 bg-indigo-500/40" />
+                <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.5em]">Neural Gateway Protocol // v5.2</span>
+                <div className="h-[1px] w-12 bg-indigo-500/40" />
+             </motion.div>
+             <motion.h1 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.5, delay: 0.8 }}
+              className="text-[5rem] md:text-[9rem] font-black tracking-tighter font-display leading-[0.8] text-white"
+            >
+              ARCHEO<span className="text-transparent" style={{ WebkitTextStroke: '1px rgba(99,102,241,1)' }}>MIND</span>
+            </motion.h1>
+          </div>
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className="text-[#D4AF37] text-sm md:text-lg font-black uppercase tracking-[0.5em] opacity-60"
+            transition={{ duration: 1.5, delay: 1.4 }}
+            className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            Neural Gateway to the Ancient World
+            Synthesizing lost histories through advanced <span className="text-white">Spatial Archeology</span> and neural mapping.
           </motion.p>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.5 }}
+          transition={{ duration: 0.8, delay: 1.8 }}
         >
           <button 
             onClick={onEnter}
-            className="group relative px-12 py-6 bg-transparent border-2 border-[#D4AF37]/30 rounded-full overflow-hidden transition-all hover:border-[#D4AF37] hover:shadow-[0_0_50px_rgba(212,175,55,0.2)]"
+            className="group relative px-16 py-7 rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 bg-white text-slate-950 font-black uppercase tracking-[0.4em] text-[11px]"
           >
-            <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-            <span className="relative z-10 flex items-center gap-4 text-[#D4AF37] group-hover:text-[#0C0B0A] font-black uppercase tracking-widest text-sm transition-colors">
+            <div className="absolute inset-0 bg-transparent translate-y-full group-hover:translate-y-0 bg-indigo-600 transition-transform duration-500" />
+            <span className="relative z-10 flex items-center gap-6 group-hover:text-white transition-colors">
               Initiate Neural Link
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
             </span>
           </button>
         </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 2 }}
-          className="pt-20 flex flex-col items-center gap-4"
-        >
-          <div className="w-px h-20 bg-gradient-to-b from-[#D4AF37]/40 to-transparent" />
-          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
-        </motion.div>
       </div>
 
-      {/* Decorative Corners */}
-      <div className="absolute top-12 left-12 w-24 h-24 border-t-2 border-l-2 border-[#D4AF37]/20 rounded-tl-[4rem]" />
-      <div className="absolute bottom-12 right-12 w-24 h-24 border-b-2 border-r-2 border-[#D4AF37]/20 rounded-br-[4rem]" />
+      {/* Cybernetic HUD Elements */}
+      <div className="absolute top-12 left-12 space-y-4 opacity-40 hidden lg:block">
+        <div className="flex items-center gap-4">
+          <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+          <span className="text-[10px] text-white font-mono tracking-widest uppercase">System Status: Nominal</span>
+        </div>
+        <div className="w-48 h-[1px] bg-gradient-to-r from-indigo-500 to-transparent" />
+      </div>
+
+      <div className="absolute bottom-12 right-12 text-right opacity-40 hidden lg:block">
+        <span className="text-[10px] text-white font-mono tracking-[0.5em] uppercase block mb-4">Neural Signature</span>
+        <div className="flex gap-2 justify-end">
+           {[...Array(5)].map((_, i) => (
+             <motion.div key={i} animate={{ height: [10, 30, 10] }} transition={{ duration: 1 + Math.random(), repeat: Infinity }} className="w-1 bg-indigo-500/50" />
+           ))}
+        </div>
+      </div>
     </div>
   );
 }

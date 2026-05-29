@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "Artifact": {
+      "title": "Historical Artifact",
+      "description": "A high-fidelity digital reconstruction and record of a historical artifact.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The common or scientific name of the specimen." },
+        "type": { "type": "string", "description": "Classification (e.g., Sculpture, Numismatics, Textile)." },
+        "rarityLevel": { "type": "number", "description": "1-5 scale of historical rarity." },
+        "civilization": { "type": "string", "description": "The culture or empire that produced the artifact." },
+        "description": { "type": "string", "description": "Physical and historical description." },
+        "historicalContext": { "type": "string", "description": "The historical backdrop of the artifact's creation." },
+        "estimatedEra": { "type": "string", "description": "Chronological window." },
+        "materialAnalysis": { "type": "string", "description": "Chemical or physical material breakdown." },
+        "historicalUsage": { "type": "string", "description": "Original function." },
+        "socialStructureInference": { "type": "string", "description": "What the artifact reveals about society." },
+        "culturalSignificance": { "type": "string", "description": "Impact on heritage." },
+        "confidenceScore": { "type": "number", "description": "AI confidence in classification." },
+        "userId": { "type": "string", "description": "UID of the researcher who logged the specimen." },
+        "userName": { "type": "string", "description": "Display name of the researcher." },
+        "imageUrl": { "type": "string", "description": "Primary high-res telemetry image." },
+        "extraImages": { "type": "array", "description": "Additional perspective captures." },
+        "tags": { "type": "array", "description": "Indexed metadata for neural search." },
+        "isVerified": { "type": "boolean", "description": "Whether an admin has authenticated the record." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "name": { "type": "string" }
+          }
+        },
+        "region": {
+          "type": "object",
+          "properties": {
+            "continent": { "type": "string" },
+            "country": { "type": "string" },
+            "state": { "type": "string" }
+          }
+        },
+        "stratigraphy": {
+          "type": "object",
+          "properties": {
+            "depth": { "type": "number" },
+            "layer": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        }
+      },
+      "required": ["name", "civilization", "userId"]
+    },
+    "AuditLog": {
+      "title": "System Audit Log",
+      "description": "Record of a significant action taken within the Neural Network.",
+      "type": "object",
+      "properties": {
+        "action": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetName": { "type": "string" },
+        "timestamp": { "type": "object" }
+      }
+    }
+  },
+  "firestore": {
+    "/artifacts/{artifactId}": {
+      "schema": "Artifact",
+      "description": "Global repository of scanned archaeological specimens."
+    },
+    "/indian_heritage/{heritageId}": {
+      "schema": "Artifact",
+      "description": "Indian Heritage Master Repository containing 5,000 highly detailed custom archeological records."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable ledger of researcher activities."
+    },
+    "/chat/{messageId}": {
+      "schema": { "type": "object" },
+      "description": "Real-time communication between global researchers."
+    },
+    "/exhibits/{exhibitId}": {
+      "schema": { "type": "object" },
+      "description": "Curated collections of artifacts for public viewing."
+    },
+    "/labs/{labId}": {
+      "schema": { "type": "object" },
+      "description": "Regional research headquarters and collaborative spaces."
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stage, PerspectiveCamera, Float, Sparkles, Grid } from '@react-three/drei';
 import { Suspense, useRef } from 'react';
 import * as THREE from 'three';
+import { Sparkles as SparklesIcon } from 'lucide-react';
 
 function ScanningLaser() {
   const ref = useRef<THREE.Mesh>(null);
@@ -14,78 +15,100 @@ function ScanningLaser() {
   return (
     <mesh ref={ref} rotation={[Math.PI / 2, 0, 0]}>
       <ringGeometry args={[1.5, 1.6, 64]} />
-      <meshBasicMaterial color="#D4AF37" transparent opacity={0.5} side={THREE.DoubleSide} />
+      <meshBasicMaterial color="#6366f1" transparent opacity={0.4} side={THREE.DoubleSide} />
     </mesh>
   );
 }
 
-export default function ThreeViewer() {
-  return (
-    <div className="w-full h-[400px] bg-[#0C0B0A] rounded-[2.5rem] overflow-hidden border border-[#D4AF37]/10 relative neural-glow">
-      <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
-        <span className="px-3 py-1 bg-[#D4AF37]/10 text-[#D4AF37] text-[10px] font-black uppercase tracking-widest rounded-full border border-[#D4AF37]/20 w-fit">
-          Neural Reconstruction: Active
-        </span>
-        <span className="text-[8px] text-white/20 uppercase tracking-[0.2em] font-bold">
-          Site: Giza Plateau / Sector 7
-        </span>
-      </div>
+interface ThreeViewerProps {
+  mode?: 'default' | 'reconstruct' | 'explore';
+}
 
-      {/* Field Notes Overlay */}
-      <div className="absolute top-6 right-6 z-10 text-right pointer-events-none">
-        <div className="space-y-4">
-          <div className="border-r-2 border-[#D4AF37]/20 pr-4">
-            <p className="text-[8px] text-[#D4AF37]/40 uppercase tracking-widest font-black mb-1">Observation Log</p>
-            <p className="text-[10px] text-white/60 font-medium italic max-w-[150px] leading-tight">
-              "Surface erosion suggests exposure to desert winds for ~2000 years. Neural patterns indicate high ritual significance."
-            </p>
-          </div>
-          <div className="border-r-2 border-[#D4AF37]/20 pr-4">
-            <p className="text-[8px] text-[#D4AF37]/40 uppercase tracking-widest font-black mb-1">Material Analysis</p>
-            <p className="text-[10px] text-white/60 font-medium italic">Basalt / High Carbon Content</p>
+function ReconstructMesh() {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.01;
+      ref.current.rotation.z += 0.005;
+    }
+  });
+
+  return (
+    <group ref={ref}>
+      <mesh>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial color="#6366f1" wireframe transparent opacity={0.3} />
+      </mesh>
+      <mesh scale={0.9}>
+        <dodecahedronGeometry args={[1, 0]} />
+        <meshStandardMaterial color="#818cf8" transparent opacity={0.6} />
+      </mesh>
+      <Sparkles count={50} scale={2} size={2} speed={0.2} color="#a855f7" />
+    </group>
+  );
+}
+
+export default function ThreeViewer({ mode = 'default' }: ThreeViewerProps) {
+  return (
+    <div className={`w-full h-full bg-slate-50/50 relative overflow-hidden ${mode === 'default' ? 'rounded-[3rem]' : 'rounded-none'}`}>
+      {/* Integrated Meta Info Overlay */}
+      {mode !== 'reconstruct' && (
+        <div className="absolute top-8 inset-x-8 z-10 flex justify-between items-start pointer-events-none">
+          <div className="flex flex-col gap-3">
+            <div className="radiant-gradient px-4 py-2 rounded-2xl shadow-xl shadow-indigo-100/50 border border-white/40 w-fit backdrop-blur-md">
+              <div className="flex flex-col">
+                <span className="text-indigo-100 text-[8px] font-black uppercase tracking-[0.3em] mb-1 leading-none opacity-80">
+                  {mode === 'explore' ? 'Spatial Exploration' : 'Neural Scan Active'}
+                </span>
+                <span className="text-white text-[13px] font-black uppercase tracking-wider leading-none">
+                  {mode === 'explore' ? 'Global Archive' : 'Spatial Reconstruction'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       <Canvas shadows dpr={[1, 2]}>
         <Suspense fallback={null}>
-          <Stage environment="night" intensity={0.2} shadows={{ type: 'contact', opacity: 0.4, blur: 2 }}>
+          <Stage environment="city" intensity={0.5} shadows={{ type: 'contact', opacity: 0.2, blur: 2 }}>
             <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-              <mesh castShadow receiveShadow>
-                <dodecahedronGeometry args={[1, 0]} />
-                <meshStandardMaterial
-                  color="#4A4A4A"
-                  roughness={0.8}
-                  metalness={0.2}
-                  flatShading
-                />
-              </mesh>
-              <ScanningLaser />
+              {mode === 'reconstruct' ? (
+                <ReconstructMesh />
+              ) : (
+                <mesh castShadow receiveShadow>
+                  <dodecahedronGeometry args={[1, 0]} />
+                  <meshStandardMaterial color="#e0e7ff" roughness={0.1} metalness={0.8} />
+                </mesh>
+              )}
+              {mode !== 'explore' && <ScanningLaser />}
             </Float>
           </Stage>
-          <Sparkles count={50} scale={5} size={2} speed={0.5} color="#D4AF37" />
+          <Sparkles count={40} scale={6} size={1.5} speed={0.4} color="#6366f1" />
           <Grid 
             infiniteGrid 
-            fadeDistance={20} 
-            fadeStrength={5} 
+            fadeDistance={25} 
+            fadeStrength={4} 
             cellSize={0.5} 
-            sectionSize={2.5} 
+            sectionSize={2} 
             sectionThickness={1} 
-            sectionColor="#D4AF37" 
-            cellColor="#2C1E12" 
+            sectionColor="#e0e7ff" 
+            cellColor="#f8fafc" 
           />
         </Suspense>
-        <OrbitControls makeDefault autoRotate autoRotateSpeed={0.3} enableZoom={false} />
-        <PerspectiveCamera makeDefault position={[0, 2, 5]} fov={40} />
+        <OrbitControls makeDefault autoRotate autoRotateSpeed={mode === 'reconstruct' ? 2 : 0.5} enableZoom={false} />
+        <PerspectiveCamera makeDefault position={[0, 2, 6]} fov={35} />
       </Canvas>
 
-      <div className="absolute bottom-6 right-6 z-10 text-right">
-        <div className="flex items-center gap-2 justify-end mb-1">
-          <div className="w-1 h-1 bg-[#D4AF37] rounded-full animate-ping" />
-          <p className="text-[#D4AF37] text-[10px] font-black uppercase tracking-widest">Quantum Scan v9.0</p>
+      {mode !== 'reconstruct' && (
+        <div className="absolute bottom-8 right-8 z-10 text-right">
+          <div className="flex items-center gap-2 justify-end mb-1">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            <p className="text-slate-800 text-[11px] font-bold uppercase tracking-wider">Lidar Uplink Active</p>
+          </div>
+          <p className="text-slate-400 text-[9px] uppercase tracking-widest">Resolution: 0.2mm Precision</p>
         </div>
-        <p className="text-white/20 text-[8px] uppercase tracking-widest">Point Cloud: 4.8M Vertices</p>
-      </div>
+      )}
     </div>
   );
 }

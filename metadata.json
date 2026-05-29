@@ -1,5 +1,6 @@
 {
-  "name": "ArcheoMind Neural Gateway",
-  "description": "A high-tech digital field journal and neural reconstruction platform for archaeological discovery, artifact analysis, and global excavation oversight.",
-  "requestFramePermissions": ["camera", "geolocation"]
+  "name": "ArcheoMind India Neural Network",
+  "description": "High-fidelity digital field journal and neural reconstruction platform specialized in Indian heritage with integrated Global Neural Vision for worldwide artifact analysis.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

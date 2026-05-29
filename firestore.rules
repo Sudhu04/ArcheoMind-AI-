@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Master Gate: Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Mission-Critical Match Blocks
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /artifacts/{artifactId} {
+      allow read, write: if true;
+    }
+
+    match /indian_heritage/{heritageId} {
+      allow read, write: if true;
+    }
+
+    match /chat/{chatId} {
+      allow read, write: if true;
+    }
+
+    match /logs/{logId} {
+      allow read, write: if true;
+    }
+
+    match /audit_logs/{logId} {
+      allow read, write: if true;
+    }
+
+    match /exhibits/{exhibitId} {
+      allow read, write: if true;
+    }
+
+    match /labs/{labId} {
+      allow read, write: if true;
+    }
+
+    match /admins/{adminId} {
+      allow read, write: if true;
+    }
+  }
+}
