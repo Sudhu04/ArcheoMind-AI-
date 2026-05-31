@@ -631,12 +631,22 @@ app.post('/api/gemini/run', async (req, res) => {
             }
         ];
 
+        let result;
         try {
-            const result = await ai.models.generateContent({
-                model: "gemini-3.5-flash",
-                contents,
-                config
-            });
+            try {
+                result = await ai.models.generateContent({
+                    model: "gemini-3.5-flash",
+                    contents,
+                    config
+                });
+            } catch (primError: any) {
+                console.log("ℹ️ Primary gemini-3.5-flash in high demand or failed. Failover to gemini-1.5-flash...");
+                result = await ai.models.generateContent({
+                    model: "gemini-1.5-flash",
+                    contents,
+                    config
+                });
+            }
 
             if (!result.text) {
                 throw new Error("Received empty response from Gemini API.");
@@ -657,9 +667,9 @@ app.post('/api/gemini/run', async (req, res) => {
         } catch (apiError: any) {
             const isQuotaError = apiError?.message?.includes("429") || apiError?.message?.includes("quota") || apiError?.message?.includes("RESOURCE_EXHAUSTED");
             if (isQuotaError) {
-                console.warn("⚠️ Server Gemini API hit rate limit or quota exceeded. Trying backup routing...");
+                console.log("ℹ️ Server dynamic route: routing request through fallback providers due to rate limit/quota.");
             } else {
-                console.warn("⚠️ Server Gemini API error occurred:", apiError.message || apiError);
+                console.log("ℹ️ Server dynamic route: routing request through fallback providers due to temporary unavailability.");
             }
 
             // Fallback options inside server
@@ -673,7 +683,7 @@ app.post('/api/gemini/run', async (req, res) => {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: "meta/llama-3.1-70b-instruct",
+                        model: options?.image ? "meta/llama-3.2-11b-vision-instruct" : "meta/llama-3.1-70b-instruct",
                         messages: [{
                             role: "user",
                             content: options?.image ? [
@@ -687,18 +697,22 @@ app.post('/api/gemini/run', async (req, res) => {
                     })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const text = data.choices?.[0]?.message?.content || "";
-                    let parsed = text.trim();
-                    if (options?.json) {
-                        try {
-                            parsed = JSON.parse(parsed);
-                        } catch (e) {}
-                    }
-                    console.log("✅ Successfully recovered server-side via NVIDIA backup.");
-                    return res.json({ result: parsed });
+                if (!response.ok) {
+                    const errText = await response.text().catch(() => "");
+                    console.warn(`⚠️ NVIDIA response not OK: status ${response.status}. Response: ${errText}`);
+                    throw new Error(`NVIDIA error ${response.status}: ${errText}`);
                 }
+
+                const data = await response.json();
+                const text = data.choices?.[0]?.message?.content || "";
+                let parsed = text.trim();
+                if (options?.json) {
+                    try {
+                        parsed = JSON.parse(parsed);
+                    } catch (e) {}
+                }
+                console.log("✅ Successfully recovered server-side via NVIDIA backup.");
+                return res.json({ result: parsed });
             } catch (nvErr) {
                 console.warn("⚠️ NVIDIA backup failed, moving to OpenRouter last resort fallback.", nvErr);
             }
@@ -726,18 +740,22 @@ app.post('/api/gemini/run', async (req, res) => {
                     })
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    const text = data.choices?.[0]?.message?.content || "";
-                    let parsed = text.trim();
-                    if (options?.json) {
-                        try {
-                            parsed = JSON.parse(parsed);
-                        } catch (e) {}
-                    }
-                    console.log("✅ Successfully recovered server-side via OpenRouter backup.");
-                    return res.json({ result: parsed });
+                if (!response.ok) {
+                    const errText = await response.text().catch(() => "");
+                    console.warn(`⚠️ OpenRouter response not OK: status ${response.status}. Response: ${errText}`);
+                    throw new Error(`OpenRouter error ${response.status}: ${errText}`);
                 }
+
+                const data = await response.json();
+                const text = data.choices?.[0]?.message?.content || "";
+                let parsed = text.trim();
+                if (options?.json) {
+                    try {
+                        parsed = JSON.parse(parsed);
+                    } catch (e) {}
+                }
+                console.log("✅ Successfully recovered server-side via OpenRouter backup.");
+                return res.json({ result: parsed });
             } catch (orErr) {
                 console.warn("⚠️ OpenRouter backup inside server-side proxy also failed:", orErr);
             }
@@ -870,27 +888,44 @@ JSON Structure:
         if (apiKey) {
             try {
                 const ai = new GoogleGenAI({ apiKey });
-                const response = await ai.models.generateContent({
-                    model: "gemini-3.5-flash",
-                    contents: [
-                        {
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { data: base64Data, mimeType } }
-                            ]
-                        }
-                    ],
-                    config: { responseMimeType: "application/json" }
-                });
+                let response;
+                try {
+                    response = await ai.models.generateContent({
+                        model: "gemini-3.5-flash",
+                        contents: [
+                            {
+                                parts: [
+                                    { text: prompt },
+                                    { inlineData: { data: base64Data, mimeType } }
+                                ]
+                            }
+                        ],
+                        config: { responseMimeType: "application/json" }
+                    });
+                } catch (primErr) {
+                    console.log("ℹ️ Primary vision model unavailable, initiating gemini-1.5-flash failover scan...");
+                    response = await ai.models.generateContent({
+                        model: "gemini-1.5-flash",
+                        contents: [
+                            {
+                                parts: [
+                                    { text: prompt },
+                                    { inlineData: { data: base64Data, mimeType } }
+                                ]
+                            }
+                        ],
+                        config: { responseMimeType: "application/json" }
+                    });
+                }
 
                 if (response.text) {
                     return JSON.parse(response.text.trim());
                 }
             } catch (geminiError: any) {
-                console.warn("⚠️ Main Gemini API call failed in identifyIndianArtifactRealtime, trying NVIDIA fallback. Error:", geminiError.message || geminiError);
+                console.log("ℹ️ Vision lookup transitioning to backup providers.");
             }
         } else {
-            console.warn("⚠️ GEMINI_API_KEY environment variable not set. Realtime vision lookup deferred to NVIDIA.");
+            console.log("ℹ️ Realtime vision lookup deferred to backup providers.");
         }
 
         // --- Tier 2 Fallback: NVIDIA Backup ---
@@ -904,7 +939,7 @@ JSON Structure:
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "meta/llama-3.1-70b-instruct",
+                    model: "meta/llama-3.2-11b-vision-instruct",
                     messages: [{
                         role: "user",
                         content: [

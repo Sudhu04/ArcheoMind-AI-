@@ -4,7 +4,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 // Initialize the Gemini API client
 // Note: In this environment, process.env.GEMINI_API_KEY is automatically handled for Vite apps.
 // We provide a way to override this dynamically via localStorage for research continuity.
-const USER_PROVIDED_KEY = "AIzaSyDkFiabeOu8__K3pTA1IS0sRpTxC7rkrgE";
+const USER_PROVIDED_KEY = "AIzaSyDB0QruIJXGlyDCxwTIg6y_ofiVdfLva5E";
 const FALLBACK_KEY = "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";
 const DEFAULT_MODEL = "gemini-3.5-flash";
 
@@ -60,7 +60,7 @@ const isGeminiError = (error: any) => {
 
 async function callNvidiaNim(prompt: string, options: { json?: boolean, image?: { data: string, mimeType: string } } = {}) {
   const apiKey = "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";
-  const model = "meta/llama-3.1-70b-instruct";
+  const model = options.image ? "meta/llama-3.2-11b-vision-instruct" : "meta/llama-3.1-70b-instruct";
   
   const messages: any[] = [{
     role: "user",
