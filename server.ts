@@ -640,9 +640,9 @@ app.post('/api/gemini/run', async (req, res) => {
                     config
                 });
             } catch (primError: any) {
-                console.log("ℹ️ Primary gemini-3.5-flash in high demand or failed. Failover to gemini-1.5-flash...");
+                console.log("ℹ️ Primary gemini-3.5-flash in high demand or failed. Failover to gemini-3.1-flash-lite...");
                 result = await ai.models.generateContent({
-                    model: "gemini-1.5-flash",
+                    model: "gemini-3.1-flash-lite",
                     contents,
                     config
                 });
@@ -903,9 +903,9 @@ JSON Structure:
                         config: { responseMimeType: "application/json" }
                     });
                 } catch (primErr) {
-                    console.log("ℹ️ Primary vision model unavailable, initiating gemini-1.5-flash failover scan...");
+                    console.log("ℹ️ Primary vision model unavailable, initiating gemini-3.1-flash-lite failover scan...");
                     response = await ai.models.generateContent({
-                        model: "gemini-1.5-flash",
+                        model: "gemini-3.1-flash-lite",
                         contents: [
                             {
                                 parts: [
