@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Star, Sparkles, Filter, ChevronRight, LayoutGrid, Clock, Activity, Languages, Zap, Compass, Feather, X } from 'lucide-react';
 import { EpigraphyTranslator } from './EpigraphyTranslator';
 import { NeuralRestoration } from './NeuralRestoration';
-import { TradeRouteExplorer } from './TradeRouteExplorer';
 import { VedicChronicles } from './VedicChronicles';
 import { ArcheoPulse } from './ArcheoPulse';
 
@@ -12,7 +11,7 @@ interface BentoMuseumProps {
   artifacts: Artifact[];
 }
 
-type ResearchModule = 'epigraphy' | 'restoration' | 'routes' | 'chronicles' | null;
+type ResearchModule = 'epigraphy' | 'restoration' | 'chronicles' | null;
 
 export default function BentoMuseum({ artifacts }: BentoMuseumProps) {
   const [activeModule, setActiveModule] = useState<ResearchModule>(null);
@@ -20,7 +19,6 @@ export default function BentoMuseum({ artifacts }: BentoMuseumProps) {
   const modules = [
     { id: 'epigraphy', name: 'Epigraphy Decoder', icon: <Languages className="w-5 h-5" />, color: 'bg-teal-500', desc: 'AI Script Translation' },
     { id: 'restoration', name: 'Neural Repair', icon: <Zap className="w-5 h-5" />, color: 'bg-purple-500', desc: 'Geometry Restoration' },
-    { id: 'routes', name: 'Spice Route', icon: <Compass className="w-5 h-5" />, color: 'bg-blue-500', desc: 'Maritime Cartography' },
     { id: 'chronicles', name: 'Vedic Chronicles', icon: <Feather className="w-5 h-5" />, color: 'bg-amber-500', desc: 'Textual Correlation' },
   ];
 
@@ -106,7 +104,6 @@ export default function BentoMuseum({ artifacts }: BentoMuseumProps) {
                 <div className="h-[80vh] overflow-y-auto">
                   {activeModule === 'epigraphy' && <EpigraphyTranslator />}
                   {activeModule === 'restoration' && <NeuralRestoration />}
-                  {activeModule === 'routes' && <TradeRouteExplorer />}
                   {activeModule === 'chronicles' && <VedicChronicles />}
                 </div>
               </motion.div>
@@ -128,8 +125,8 @@ export default function BentoMuseum({ artifacts }: BentoMuseumProps) {
                 <span className="px-5 py-1.5 radiant-gradient text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg shadow-indigo-100">Intelligent Exhibit</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1 bg-slate-100 rounded-lg">Accuracy Focus</span>
              </div>
-            <h3 className="text-6xl font-extrabold tracking-tight leading-[0.9] text-slate-900 font-display">SILK ROAD <br/> <span className="text-indigo-600">RESONANCE</span></h3>
-            <p className="text-slate-500 text-base max-w-sm leading-relaxed font-medium">ArcheoMind AI has detected high visual resonance across these trade route fragments. Cross-referencing isotopic data for 100% provenance accuracy.</p>
+            <h3 className="text-6xl font-extrabold tracking-tight leading-[0.9] text-slate-900 font-display">ARCHIVAL <br/> <span className="text-indigo-600">SPOTLIGHT</span></h3>
+            <p className="text-slate-500 text-base max-w-sm leading-relaxed font-medium">ArcheoMind AI's premier verified recoveries of early human civilizations. Reviewing isotopic data, stratigraphic preservation, and neural visual reconstructive models.</p>
           </div>
           
           <div className="grid grid-cols-2 gap-8 relative z-10">

@@ -1,6 +1,6 @@
 {
   "name": "ArcheoMind India Neural Network",
   "description": "High-fidelity digital field journal and neural reconstruction platform specialized in Indian heritage with integrated Global Neural Vision for worldwide artifact analysis.",
-  "requestFramePermissions": ["camera", "geolocation"],
+  "requestFramePermissions": ["camera", "geolocation", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

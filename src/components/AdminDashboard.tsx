@@ -173,6 +173,7 @@ export default function AdminDashboard({ artifacts, currentUser, onUpdate }: Adm
         await storage.deleteArtifact(id);
       }
       setSelectedIds(new Set());
+      onUpdate();
     }
   };
 
@@ -421,12 +422,23 @@ export default function AdminDashboard({ artifacts, currentUser, onUpdate }: Adm
               <Activity className="w-8 h-8 text-indigo-500" />
               Discovery Authentication
             </h3>
-            <button 
-              onClick={toggleAll}
-              className="px-4 py-2 border-2 border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all font-sans"
-            >
-              {selectedIds.size === artifacts.length ? 'Deselect All' : 'Select All'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={toggleAll}
+                className="px-4 py-2 border-2 border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all font-sans select-none"
+              >
+                {selectedIds.size === artifacts.length ? 'Deselect All' : 'Select All'}
+              </button>
+              {selectedIds.size > 0 && (
+                <button 
+                  onClick={handleBulkDelete}
+                  className="px-4 py-2 bg-rose-50 text-rose-500 hover:bg-rose-600 hover:text-white border border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all font-sans flex items-center gap-1.5 shadow-sm select-none"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete All ({selectedIds.size})
+                </button>
+              )}
+            </div>
           </div>
           <div className="space-y-4">
             {artifacts.length > 0 ? (

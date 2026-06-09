@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, MessageSquare, Terminal, Shield } from 'lucide-react';
+import { Send, MessageSquare, Terminal, Shield, X } from 'lucide-react';
 import { storage } from '../services/storageService';
 import { ChatMessage, User } from '../types';
 
@@ -39,25 +39,42 @@ const GlobalChat: React.FC<GlobalChatProps> = ({ currentUser }) => {
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
+    <div className="fixed bottom-8 right-28 z-[60]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="mb-4 w-96 h-[500px] glass-card flex flex-col overflow-hidden border-indigo-400/30 shadow-[0_32px_64px_-16px_rgba(79,70,229,0.3)]"
+            className="absolute bottom-20 right-0 w-96 h-[500px] glass-card rounded-[2.5rem] border-white shadow-2xl overflow-hidden flex flex-col bg-white/90 backdrop-blur-xl"
           >
-            <div className="p-4 bg-slate-900 flex items-center justify-between border-b border-slate-800">
-               <div className="flex items-center gap-3">
-                  <Terminal className="w-4 h-4 text-indigo-400" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Neural Channel // Active</span>
-               </div>
-               {currentUser.role === 'admin' && (
-                  <div title="Admin Monitored">
-                    <Shield className="w-3 h-3 text-emerald-400" />
+            {/* Header */}
+            <div className="p-6 bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                  <Terminal className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-black text-sm uppercase tracking-widest">Neural Channel</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                    <span className="text-[8px] text-white/70 font-bold uppercase tracking-widest">Research Uplink Active</span>
                   </div>
-               )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {currentUser.role === 'admin' && (
+                  <div title="Admin Monitored" className="p-2 bg-white/10 rounded-xl">
+                    <Shield className="w-4 h-4 text-emerald-400" />
+                  </div>
+                )}
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div 
@@ -104,19 +121,20 @@ const GlobalChat: React.FC<GlobalChatProps> = ({ currentUser }) => {
         )}
       </AnimatePresence>
 
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 hover:scale-110 active:scale-90 relative ${
-          isOpen ? 'bg-slate-900 rotate-90' : 'btn-primary'
-        }`}
+        className="w-16 h-16 bg-gradient-to-tr from-cyan-500 via-teal-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-indigo-100 border-4 border-white/20 relative group"
       >
-        <MessageSquare className="w-7 h-7" />
+        <div className="absolute inset-0 rounded-full animate-ping bg-cyan-400/20 group-hover:hidden" />
+        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
         {!isOpen && messages.length > 0 && (
-           <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center">
+           <div className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center z-10 shadow-sm">
               <span className="text-[10px] font-black text-white">{messages.length > 9 ? '9+' : messages.length}</span>
            </div>
         )}
-      </button>
+      </motion.button>
     </div>
   );
 };

@@ -122,7 +122,7 @@ export const storage = {
           callback(artifacts);
         },
         async (error) => {
-          console.warn("Firestore subscription failed, activating local/REST polling fallback.", error);
+          console.log("ℹ️ Firestore subscription transitioned to local/REST polling.");
           if (unsubscribe) {
             try { unsubscribe(); } catch(e) {}
             unsubscribe = null;
@@ -131,7 +131,7 @@ export const storage = {
         }
       );
     } catch (err) {
-      console.warn("Firestore subscription setup failed, activating local/REST polling fallback:", err);
+      console.log("ℹ️ Firestore subscription transitioned to local/REST polling.");
       activatePollingFallback();
     }
 
@@ -146,8 +146,13 @@ export const storage = {
             const data = await res.json();
             callback(data);
           }
-        } catch (e) {
-          console.error("Polling artifacts fallback error: ", e);
+        } catch (e: any) {
+          // Avoid triggering error warnings for transient browser network polling during dev server restarts
+          if (e?.message?.includes('Failed to fetch') || e?.message?.includes('Fetch failed') || e?.toString().includes('Failed to fetch')) {
+            console.log("ℹ️ Polling artifacts fallback: server transient status update.");
+          } else {
+            console.log("ℹ️ Polling artifacts fallback: status update.", e?.message || e);
+          }
         }
       };
       

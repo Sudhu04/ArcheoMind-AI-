@@ -111,9 +111,12 @@ Every component within ArcheoMind has been engineered around strict separation o
 *   **`BentoMuseum.tsx` & `ArtifactCard.tsx`**
     *   **Description**: Flexible, bento-styled archive interface presenting the collection of historical assets.
     *   **How it works**: Operates a state-managed filter controller. Sorts artifacts by estimated epoch, civilization origin, material category, and validation grade.
-*   **`ComparativeAnalyzer.tsx` & `NeuralRestoration.tsx`**
-    *   **Description**: Deep twin comparative visualizer. Matches weathered artifact relics alongside their restored virtual representations.
-    *   **How it works**: Couples high-contrast split view comparison sliders, rendering comparative analytics charts and tracking materials, volumes, and weight deltas.
+*   **`ComparativeAnalyzer.tsx`, `NeuralRestoration.tsx` & `NeuralComparator.tsx`**
+    *   **Description**: High-fidelity dynamic comparative suite and neural match validator.
+    *   **How it works**: Renders deep interactive twin comparative models, complete with high-contrast comparison sliders and real-time synchronization checks. The **Neural Comparator** leverages an animated quantum state pipeline to evaluate temporal overlaps, architectural lineage vectors, and mineralogical matrix symmetries, rendering the output inside premium SVG analytical gauges, structured metadata grids, and a certified forensic telemetry signature card.
+*   **`ResonanceAnalyzer.tsx`**
+    *   **Description**: Advanced AI cross-resonance synthesis module.
+    *   **How it works**: Submits comparative criteria of double artifacts to the Gemini API with structured JSON output patterns. The synthesized response hydrates a highly stylized GUI consisting of circular resonance gauges, affinity classifications, custom visual analogical dashboards mapping material synchronicity, socio-technical inferences, and a verified forensic consensus verdict panel.
 
 ### 👥 Live Collaboration Modules
 *   **`GlobalChat.tsx` & `NotificationSystem.tsx`**

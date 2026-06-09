@@ -22,6 +22,7 @@ import NeuralPulse from './components/NeuralPulse';
 import AchievementMatrix from './components/AchievementMatrix';
 import GlobalChat from './components/GlobalChat';
 import ResearcherLeaderboard from './components/ResearcherLeaderboard';
+import VoiceSearchOverlay from './components/VoiceSearchOverlay';
 import NeuralComparator from './components/NeuralComparator';
 import ResearchBounties from './components/ResearchBounties';
 import DailySynthesis from './components/DailySynthesis';
@@ -722,6 +723,10 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
+            <VoiceSearchOverlay 
+              isOpen={isVoiceActive} 
+              onClose={() => setIsVoiceActive(false)} 
+            />
           </div>
         </main>
       </motion.div>

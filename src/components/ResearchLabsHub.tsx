@@ -66,6 +66,7 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
 
 
   const [sourceVoltage, setSourceVoltage] = useState<number>(45); // kV
+  const [showGuide, setShowGuide] = useState(true);
 
   // Sync initial selections if landmarks load later
   useEffect(() => {
@@ -264,6 +265,109 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
             label="Research Nodes"
           />
         </div>
+      </div>
+
+      {/* Dynamic Lab Operational Guide */}
+      <div className="glass-card bg-slate-50 border-slate-200/60 rounded-3xl p-6 relative overflow-hidden transition-all shadow-inner">
+        <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setShowGuide(!showGuide)}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+               <HelpCircle className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+               <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">LAB OPERATIONAL GUIDE</h4>
+               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Learn how the current sandbox works</p>
+            </div>
+          </div>
+          <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest px-3.5 py-1.5 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 shadow-sm transition-all select-none">
+             {showGuide ? "HIDE GUIDE" : "SHOW GUIDE"}
+          </span>
+        </div>
+
+        <AnimatePresence>
+          {showGuide && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden mt-4"
+            >
+              <div className="border-t border-slate-200/60 pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <h5 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1.5">Active Module</h5>
+                  <p className="text-xs font-black text-slate-800">
+                    {activeSubTab === 'debate' && "Advisory Council Roundtable"}
+                    {activeSubTab === 'restoration' && "Neural Repair Studio"}
+                    {activeSubTab === 'epigraphy' && "Epigraphy & Seal Sandbox"}
+                    {activeSubTab === 'spectrometry' && "Spectrometry Analysis Lab"}
+                    {activeSubTab === 'nodes' && "Regional Research Nodes"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-1">
+                    {activeSubTab === 'debate' && "Select an artifact and launch the Advisory Council. Three simulated archeological advisors (historian, conservator, computational philologist) will conduct a structured debate to infer its provenance and historical structure."}
+                    {activeSubTab === 'restoration' && "Load a damaged artifact, set inpainting level & diffusion parameters, and trigger the AI restoration. The deep neural restorer reconstructs geometric voids and maps original textures."}
+                    {activeSubTab === 'epigraphy' && "Enter modern scriptures to see them instantly transcoded into ancient Brahmi/Kharosthi glyph characters. Test historical sealing and imprint clay prototypes."}
+                    {activeSubTab === 'spectrometry' && "Select a subject artifact, calibrate laser parameters & chamber pressure, and run spectrometry analysis. Resolves carbon-14 levels, Thermoluminescence decay, and maps heavy element distributions."}
+                    {activeSubTab === 'nodes' && "Monitor global computational nodes located at prime archeological hubs (Rakhigarhi, Pompeii, Cairo, Keeladi). View real-time active cluster loads and synchronized data transfers."}
+                  </p>
+                </div>
+
+                <div>
+                  <h5 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1.5">Primary Parameters</h5>
+                  <ul className="text-[11px] text-slate-500 font-medium leading-relaxed space-y-1 list-disc pl-4">
+                    {activeSubTab === 'debate' && (
+                      <>
+                        <li><strong>Advisors involved</strong>: Historian, Conservator, Philologist.</li>
+                        <li><strong>AI Engine</strong>: Cross-Agent Multi-Round Reasoning model.</li>
+                        <li><strong>Artifact Input</strong>: Subject artifact details and provenancing data.</li>
+                      </>
+                    )}
+                    {activeSubTab === 'restoration' && (
+                      <>
+                        <li><strong>Denoise Steps</strong>: Fine-tunes texture diffusion intensity.</li>
+                        <li><strong>Inpainting Level</strong>: Percentage area reconstructed near guiding pins.</li>
+                        <li><strong>Core Architecture</strong>: Choose U-Net, Diffusion or NeRF models.</li>
+                      </>
+                    )}
+                    {activeSubTab === 'epigraphy' && (
+                      <>
+                        <li><strong>Glyph Map</strong>: Authentic Unicode Brahmi-Kharosthi font pairings.</li>
+                        <li><strong>Seal Material</strong>: Select Terracotta, Slate or Sandstone lookups.</li>
+                        <li><strong>Verification Rating</strong>: Scoring of transcript fidelity and historical era.</li>
+                      </>
+                    )}
+                    {activeSubTab === 'spectrometry' && (
+                      <>
+                        <li><strong>Lasers Calibration</strong>: Adjust Power output & chamber gas density.</li>
+                        <li><strong>Analysis Focus</strong>: Toggle C-14, TL decay, or XRF heavy spectra scan.</li>
+                        <li><strong>Accuracy Rating</strong>: Displays probability match of materials.</li>
+                      </>
+                    )}
+                    {activeSubTab === 'nodes' && (
+                      <>
+                        <li><strong>Active Node Clusters</strong>: Physical data servers on site.</li>
+                        <li><strong>Network Heartbeat</strong>: Reflected in live cluster bandwidth charts.</li>
+                        <li><strong>Dataset Sync Level</strong>: Continuous automatic backup metrics.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div>
+                  <h5 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1.5">Operational Output</h5>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    {activeSubTab === 'debate' && "Generates transcript summaries, timeline breakdowns, and full structural inferences. Helps researchers build structured consensus."}
+                    {activeSubTab === 'restoration' && "Displays volumetric preview comparisons, structural losses metrics, and provides geometry asset downloads."}
+                    {activeSubTab === 'epigraphy' && "Provides copies of vector scripts, authentic clay render blocks, and metadata for archival preservation cataloging."}
+                    {activeSubTab === 'spectrometry' && "Plots complete laser emission spectrographs with key tracer element profiles and prints verified carbon dating certificates."}
+                    {activeSubTab === 'nodes' && "Enables syncing telemetry streams with global archives and maintaining server authoritative ledger logs."}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
 
       {/* RENDER SUITE VIEWS */}
