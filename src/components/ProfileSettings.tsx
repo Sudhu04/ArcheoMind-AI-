@@ -36,6 +36,12 @@ export default function ProfileSettings({ currentUser, onUpdate }: ProfileSettin
     github: currentUser.socialLinks?.github || '',
     researchInterests: currentUser.researchInterests?.join(', ') || '',
     theme: currentUser.theme || 'light',
+    academicDegree: currentUser.academicDegree || '',
+    orcidId: currentUser.orcidId || '',
+    languagesKnown: currentUser.languagesKnown?.join(', ') || '',
+    fieldEquipment: currentUser.fieldEquipment || '',
+    phoneNumber: currentUser.phoneNumber || '',
+    notificationFrequency: (currentUser.notificationFrequency || 'realtime') as 'realtime' | 'daily' | 'none',
     geminiApiKey: typeof window !== 'undefined' ? localStorage.getItem('GEMINI_API_KEY_OVERRIDE') || '' : ''
   });
   const [profileImage, setProfileImage] = useState<string | null>(currentUser.profileImage || null);
@@ -79,7 +85,13 @@ export default function ProfileSettings({ currentUser, onUpdate }: ProfileSettin
         },
         researchInterests: formData.researchInterests.split(',').map(s => s.trim()).filter(s => s !== ''),
         profileImage: profileImage || undefined,
-        theme: formData.theme as 'light' | 'dark'
+        theme: formData.theme as 'light' | 'dark',
+        academicDegree: formData.academicDegree,
+        orcidId: formData.orcidId,
+        languagesKnown: formData.languagesKnown.split(',').map(s => s.trim()).filter(s => s !== ''),
+        fieldEquipment: formData.fieldEquipment,
+        phoneNumber: formData.phoneNumber,
+        notificationFrequency: formData.notificationFrequency as 'realtime' | 'daily' | 'none'
       };
 
       // Save Gemini API Key Override to localStorage
@@ -270,6 +282,89 @@ export default function ProfileSettings({ currentUser, onUpdate }: ProfileSettin
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all"
                     placeholder="E.g. Heritage Institute"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Scholarly Credentials */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-4">Academic & Decipherment Identifiers</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Highest Academic Degree</label>
+                  <input 
+                    type="text"
+                    value={formData.academicDegree}
+                    onChange={e => setFormData(prev => ({ ...prev, academicDegree: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all"
+                    placeholder="E.g. Ph.D. in Epigraphy & Classical Studies"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ORCID iD Number</label>
+                  <input 
+                    type="text"
+                    value={formData.orcidId}
+                    onChange={e => setFormData(prev => ({ ...prev, orcidId: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all"
+                    placeholder="E.g. 0000-0002-1825-0097"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Linguistic Proficiencies / Core Translating Scripts (Comma separated)</label>
+                <input 
+                  type="text"
+                  value={formData.languagesKnown}
+                  onChange={e => setFormData(prev => ({ ...prev, languagesKnown: e.target.value }))}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all placeholder:text-slate-300"
+                  placeholder="E.g. Sanskrit, Brahmi Script, Ancient Greek, Indus Sign, Latin"
+                />
+              </div>
+            </div>
+
+            {/* Field Operations */}
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-4">Field Gear & Operations Control</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Primary Spectrometry / Laboratory Gear</label>
+                  <input 
+                    type="text"
+                    value={formData.fieldEquipment}
+                    onChange={e => setFormData(prev => ({ ...prev, fieldEquipment: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all"
+                    placeholder="E.g. Rigaku KT-100S LIBS Scanner"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Secure Communications Channel (Phone)</label>
+                  <input 
+                    type="text"
+                    value={formData.phoneNumber}
+                    onChange={e => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all"
+                    placeholder="E.g. +91 8892 2341 XX"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Synapse Alerts Priority Frequency</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['realtime', 'daily', 'none'].map((freq) => (
+                    <button
+                      key={freq}
+                      type="button"
+                      onClick={() => setFormData(p => ({ ...p, notificationFrequency: freq as 'realtime' | 'daily' | 'none' }))}
+                      className={`py-3.5 px-4 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all ${
+                        formData.notificationFrequency === freq
+                          ? 'bg-indigo-50 border-indigo-500 text-indigo-600 font-extrabold shadow-sm'
+                          : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-slate-200'
+                      }`}
+                    >
+                      {freq === 'realtime' ? 'Instant Synapse' : freq === 'daily' ? 'Daily Digest' : 'Offline'}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

@@ -159,7 +159,11 @@ export default function ArtifactScanner({ onArtifactSaved, onManualEntry, curren
         timestamp: Date.now(),
         hash: Math.random().toString(36).substring(2, 11).toUpperCase()
       }],
-      verificationLog: result.verificationLog || []
+      verificationLog: result.verificationLog || [],
+      chemicalComposition: result.chemicalComposition || null,
+      epigraphicTranscript: result.epigraphicTranscript || null,
+      calibratedAgeRange: result.calibratedAgeRange || null,
+      visualDegradationIndex: result.visualDegradationIndex || null
     };
 
     await storage.saveArtifact(newArtifact);

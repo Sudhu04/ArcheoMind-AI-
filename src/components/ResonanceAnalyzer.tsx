@@ -61,7 +61,7 @@ export default function ResonanceAnalyzer({ artifacts }: ResonanceAnalyzerProps)
           <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.5em]">Cross-Resonance Analysis</span>
           <div className="h-px w-16 bg-indigo-100" />
         </div>
-        <h2 className="text-6xl font-black tracking-tight text-slate-900 font-display">Neural <span className="text-slate-300">Synchronicity</span></h2>
+        <h2 className="text-6xl font-black tracking-tight text-slate-900 font-display">Neural <span className="text-indigo-600">Synchronicity</span></h2>
         <p className="text-slate-500 max-w-lg leading-relaxed font-medium">Select two disparate fragments to mapped potential trade resonance or parallel technical evolution.</p>
       </div>
 

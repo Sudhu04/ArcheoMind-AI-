@@ -72,7 +72,7 @@ export default function AIResearchAssistant({ currentUser, artifacts }: { curren
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-[60]">
+    <div className="relative z-[60]">
       <AnimatePresence>
         {isOpen && (
           <motion.div

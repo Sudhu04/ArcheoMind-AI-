@@ -560,8 +560,11 @@ export default function App() {
                     )}
                   </AnimatePresence>
 
-                  <GlobalChat currentUser={currentUser} />
-                  <AIResearchAssistant currentUser={currentUser} artifacts={artifacts} />
+                  {/* Unified Utility Action Suite - Perfect Sync Side-by-Side */}
+                  <div className="fixed bottom-8 right-8 z-[60] flex items-center gap-4">
+                    <GlobalChat currentUser={currentUser} />
+                    <AIResearchAssistant currentUser={currentUser} artifacts={artifacts} />
+                  </div>
                   <AnimatePresence>
                      {isComparing && (
                         <ComparativeAnalyzer artifacts={artifacts} onClose={() => setIsComparing(false)} />

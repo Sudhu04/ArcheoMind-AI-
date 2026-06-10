@@ -21,6 +21,12 @@ export interface User {
   };
   researchInterests?: string[];
   theme?: 'light' | 'dark';
+  academicDegree?: string;
+  orcidId?: string;
+  languagesKnown?: string[];
+  fieldEquipment?: string;
+  phoneNumber?: string;
+  notificationFrequency?: 'realtime' | 'daily' | 'none';
   xp?: number;
   level?: number;
   badges?: {
@@ -155,6 +161,10 @@ export interface Artifact {
     description: string;
   }[];
   aiInsights?: string;
+  chemicalComposition?: { element: string; value: string }[];
+  epigraphicTranscript?: { script: string; originalGraphemes: string; englishTranslation: string };
+  calibratedAgeRange?: string;
+  visualDegradationIndex?: string;
 }
 
 export interface ResearchAlert {

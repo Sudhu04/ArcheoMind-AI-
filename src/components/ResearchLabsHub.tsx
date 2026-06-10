@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { runMultiAgentDebate, CouncilDebateResult, DebateTurn, runSpectrometryAnalysis, SpectrometryAnalysisResult } from '../services/geminiService';
-import RegionalResearchLabs from './RegionalResearchLabs';
+
 import { Artifact, User } from '../types';
 
 interface ResearchLabsHubProps {
@@ -26,7 +26,7 @@ const GLYPH_MAP: { [key: string]: string } = {
 };
 
 export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabsHubProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'nodes' | 'debate' | 'restoration' | 'epigraphy' | 'spectrometry'>('debate');
+  const [activeSubTab, setActiveSubTab] = useState<'debate' | 'restoration' | 'epigraphy' | 'spectrometry'>('debate');
 
   // --- MULTI-AGENT STATE ---
   const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(artifacts[0] || null);
@@ -258,12 +258,7 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
             icon={<Gauge className="w-4 h-4" />}
             label="Spectrometry Lab"
           />
-          <TabButton 
-            active={activeSubTab === 'nodes'} 
-            onClick={() => setActiveSubTab('nodes')}
-            icon={<Beaker className="w-4 h-4" />}
-            label="Research Nodes"
-          />
+
         </div>
       </div>
 
@@ -301,14 +296,12 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
                     {activeSubTab === 'restoration' && "Neural Repair Studio"}
                     {activeSubTab === 'epigraphy' && "Epigraphy & Seal Sandbox"}
                     {activeSubTab === 'spectrometry' && "Spectrometry Analysis Lab"}
-                    {activeSubTab === 'nodes' && "Regional Research Nodes"}
                   </p>
                   <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-1">
                     {activeSubTab === 'debate' && "Select an artifact and launch the Advisory Council. Three simulated archeological advisors (historian, conservator, computational philologist) will conduct a structured debate to infer its provenance and historical structure."}
                     {activeSubTab === 'restoration' && "Load a damaged artifact, set inpainting level & diffusion parameters, and trigger the AI restoration. The deep neural restorer reconstructs geometric voids and maps original textures."}
                     {activeSubTab === 'epigraphy' && "Enter modern scriptures to see them instantly transcoded into ancient Brahmi/Kharosthi glyph characters. Test historical sealing and imprint clay prototypes."}
                     {activeSubTab === 'spectrometry' && "Select a subject artifact, calibrate laser parameters & chamber pressure, and run spectrometry analysis. Resolves carbon-14 levels, Thermoluminescence decay, and maps heavy element distributions."}
-                    {activeSubTab === 'nodes' && "Monitor global computational nodes located at prime archeological hubs (Rakhigarhi, Pompeii, Cairo, Keeladi). View real-time active cluster loads and synchronized data transfers."}
                   </p>
                 </div>
 
@@ -343,13 +336,7 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
                         <li><strong>Accuracy Rating</strong>: Displays probability match of materials.</li>
                       </>
                     )}
-                    {activeSubTab === 'nodes' && (
-                      <>
-                        <li><strong>Active Node Clusters</strong>: Physical data servers on site.</li>
-                        <li><strong>Network Heartbeat</strong>: Reflected in live cluster bandwidth charts.</li>
-                        <li><strong>Dataset Sync Level</strong>: Continuous automatic backup metrics.</li>
-                      </>
-                    )}
+
                   </ul>
                 </div>
 
@@ -360,7 +347,6 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
                     {activeSubTab === 'restoration' && "Displays volumetric preview comparisons, structural losses metrics, and provides geometry asset downloads."}
                     {activeSubTab === 'epigraphy' && "Provides copies of vector scripts, authentic clay render blocks, and metadata for archival preservation cataloging."}
                     {activeSubTab === 'spectrometry' && "Plots complete laser emission spectrographs with key tracer element profiles and prints verified carbon dating certificates."}
-                    {activeSubTab === 'nodes' && "Enables syncing telemetry streams with global archives and maintaining server authoritative ledger logs."}
                   </p>
                 </div>
               </div>
@@ -373,17 +359,7 @@ export default function ResearchLabsHub({ currentUser, artifacts }: ResearchLabs
       {/* RENDER SUITE VIEWS */}
       <AnimatePresence mode="wait">
         
-        {/* TAB 1: COLLABORATIVE NODES (ORIGNAL LIST) */}
-        {activeSubTab === 'nodes' && (
-          <motion.div
-            key="nodes-tab"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-          >
-            <RegionalResearchLabs currentUser={currentUser} />
-          </motion.div>
-        )}
+
 
         {/* TAB 2: MULTI-AGENT ADVISORY COUNCIL */}
         {activeSubTab === 'debate' && (

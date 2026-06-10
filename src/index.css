@@ -5,6 +5,16 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  /* Overrides for text color class accessibility throughout the light-themed project */
+  /* Turning light grays into deep, dark readable colors */
+  --color-slate-400: #334155; /* Formerly #94a3b8 */
+  --color-slate-550: #1e293b; /* Custom helper */
+  --color-slate-500: #1e293b; /* Formerly #64748b */
+  --color-gray-400: #374151;  /* Formerly #9ca3af */
+  --color-gray-500: #1f2937;  /* Formerly #71717a */
+  --color-zinc-400: #3f3f46;  /* Formerly #a1a1aa */
+  --color-zinc-500: #27272a;  /* Formerly #71717a */
 }
 
 @utility text-gradient {

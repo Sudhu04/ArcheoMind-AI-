@@ -39,7 +39,7 @@ const GlobalChat: React.FC<GlobalChatProps> = ({ currentUser }) => {
   };
 
   return (
-    <div className="fixed bottom-8 right-28 z-[60]">
+    <div className="relative z-[60]">
       <AnimatePresence>
         {isOpen && (
           <motion.div

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
 import { Artifact, Comment, User, Exhibit } from '../types';
 import { 
   X, 
@@ -20,7 +21,8 @@ import {
   Globe,
   Share2,
   Library,
-  BookOpen
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translateDescription, askHistorian } from '../services/geminiService';
@@ -45,6 +47,7 @@ export default function DiscoveryDetails({ artifact, onClose, currentUser, onUpd
   const [activeTab, setActiveTab] = useState<'analysis' | 'comments' | 'ledger' | 'science'>('analysis');
   const [isExhibitOpen, setIsExhibitOpen] = useState(false);
   const [exhibits, setExhibits] = useState<Exhibit[]>([]);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     storage.getExhibits().then(setExhibits);
@@ -127,15 +130,353 @@ export default function DiscoveryDetails({ artifact, onClose, currentUser, onUpd
     }
   };
 
-  const handleExport = () => {
-    // Simulated Export
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(artifact, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href",     dataStr);
-    downloadAnchorNode.setAttribute("download", `${artifact.name.replace(/\s+/g, '_')}_dossier.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  const getBase64Image = async (url: string): Promise<string | null> => {
+    if (!url) return null;
+    if (url.startsWith('data:image')) return url;
+    try {
+      const response = await fetch(url, { referrerPolicy: 'no-referrer' });
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string || null);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.warn("CORS/fetch fallback for PDF image generation", e);
+      try {
+        const imgEl = document.querySelector(`img[src="${url}"]`) as HTMLImageElement;
+        if (imgEl && imgEl.complete) {
+          const canvas = document.createElement('canvas');
+          canvas.width = imgEl.naturalWidth || imgEl.width;
+          canvas.height = imgEl.naturalHeight || imgEl.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(imgEl, 0, 0);
+            return canvas.toDataURL('image/jpeg');
+          }
+        }
+      } catch (domErr) {
+        console.warn("DOM canvas capture failed too", domErr);
+      }
+      return null;
+    }
+  };
+
+  const handleExport = async () => {
+    if (!artifact || isGeneratingPDF) return;
+    setIsGeneratingPDF(true);
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Header accent banner
+      doc.setFillColor(30, 41, 59); // Slate Gray
+      doc.rect(0, 0, 210, 38, 'F');
+      
+      // Core Header titles
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(255, 255, 255);
+      doc.text("ARCHEOMIND INDIA INTEGRITY NETWORK", 14, 18);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(191, 196, 210);
+      doc.text("NEURAL SPECTRAL HERITAGE ARCHIVE & EXCAVATION RECORD", 14, 26);
+      
+      // Border Separator line
+      doc.setDrawColor(99, 102, 241); // Indigo-500
+      doc.setLineWidth(1.5);
+      doc.line(0, 38, 210, 38);
+      
+      let y = 46;
+
+      // Draw main image on the left, primary metadata box on the right
+      const mainImgData = await getBase64Image(artifact.imageUrl);
+      
+      // Image container box
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(14, y, 65, 65, 'D');
+
+      if (mainImgData) {
+        try {
+          doc.addImage(mainImgData, 'JPEG', 15, y + 1, 63, 63);
+        } catch (imgErr) {
+          console.error("PDF image draw failed:", imgErr);
+          doc.setFillColor(241, 245, 249);
+          doc.rect(15, y + 1, 63, 63, 'F');
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text("Telemetry Image Offline", 28, y + 32);
+        }
+      } else {
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, y + 1, 63, 63, 'F');
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text("Telemetry Image Offline", 28, y + 32);
+      }
+
+      // Metadata section on right side
+      doc.setFillColor(248, 250, 252); // Slate-50bg
+      doc.rect(84, y, 112, 65, 'F');
+      doc.setDrawColor(226, 232, 240); // Slate-200 border
+      doc.setLineWidth(0.5);
+      doc.rect(84, y, 112, 65, 'D');
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(17, 24, 39);
+      doc.text((artifact.name || "UNNAMED ARTIFACT").toUpperCase(), 88, y + 6);
+
+      doc.setFontSize(7.5);
+      
+      // Row 1
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("REGISTRY TYPE:", 88, y + 13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 41, 59);
+      doc.text((artifact.type || "UNKNOWN CATEGORY").toUpperCase(), 124, y + 13);
+
+      // Row 2
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("CIVILIZATION / ERA:", 88, y + 20);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 41, 59);
+      doc.text(`${artifact.civilization || "N/A"} (${artifact.estimatedEra || "N/A"})`, 124, y + 20);
+
+      // Row 3
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("GEOSPATIAL SITE:", 88, y + 27);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 41, 59);
+      const locStr = `${artifact.location?.name || "Field Site"} (${(artifact.location?.lat || 0).toFixed(4)}, ${(artifact.location?.lng || 0).toFixed(4)})`;
+      doc.text(doc.splitTextToSize(locStr, 68)[0], 124, y + 27);
+
+      // Row 4
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("AI CONFIDENCE:", 88, y + 34);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(16, 185, 129); // Emerald
+      doc.text(`${((artifact.confidenceScore || 0) * 100).toFixed(1)}%`, 124, y + 34);
+
+      // Row 5
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("RARITY RATING:", 88, y + 41);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(245, 158, 11); // Amber
+      doc.text(`${"★".repeat(artifact.rarityLevel || 0)}${"☆".repeat(5 - (artifact.rarityLevel || 0))} (${artifact.rarityLevel || 0}/5)`, 124, y + 41);
+
+      // Row 6
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text("AUDIT VALIDATION:", 88, y + 48);
+      doc.setFont("helvetica", "bold");
+      if (artifact.isVerified) {
+        doc.setTextColor(99, 102, 241); // Indigo
+        doc.text("ACADEMICALLY VERIFIED", 124, y + 48);
+      } else {
+        doc.setTextColor(239, 68, 68); // Red
+        doc.text("VERIFICATION PENDING", 124, y + 48);
+      }
+
+      // Row 7 (Tags)
+      if (artifact.tags && artifact.tags.length > 0) {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 116, 139);
+        doc.text("ARCHIVAL TAGS:", 88, y + 55);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(71, 85, 105);
+        const tagsStr = artifact.tags.join(" · ");
+        doc.text(doc.splitTextToSize(tagsStr, 68)[0], 124, y + 55);
+      }
+
+      y += 75; // Set starting height for body content
+      
+      // Printable section drawing helper with auto-page wrapping logic
+      const drawSection = (title: string, desc: string) => {
+        if (!desc) return;
+        
+        // Ensure space for the title header
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(79, 70, 229); // Indigo 600
+        doc.text((title || "").toUpperCase(), 14, y);
+        
+        doc.setDrawColor(224, 231, 255); // Indigo 100 border line
+        doc.setLineWidth(0.3);
+        doc.line(14, y + 2, 196, y + 2);
+        
+        y += 8;
+        
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(55, 65, 81); // Charcoal Gray
+        
+        const lines = doc.splitTextToSize(desc, 182);
+        for (let i = 0; i < lines.length; i++) {
+          if (y > 275) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(lines[i], 14, y);
+          y += 5.5;
+        }
+        y += 6; // Segment margin gap
+      };
+      
+      // Write out segments of the archaeological research documentation
+      drawSection("1. Academic Abstract & Classification Description", artifact.description);
+      drawSection("2. Scholarly Chronology & Dynasty Context", artifact.historicalContext || "No additional specific historical context was recorded at discovery.");
+      drawSection("3. Material Composition Spectroscopy", artifact.materialAnalysis || "Elemental spectrum scan pending laboratory calibration indices.");
+      
+      // NEW: LIBS Chemical Composition profile
+      if (artifact.chemicalComposition && artifact.chemicalComposition.length > 0) {
+        const chemText = artifact.chemicalComposition.map(c => `${c.element}: ${c.value}`).join("  |  ");
+        drawSection("3a. Laser-Induced Breakdown Spectroscopy (LIBS) Elemental Profile", chemText);
+      }
+
+      // NEW: Epigraphic text profile
+      if (artifact.epigraphicTranscript) {
+        const epigraphText = `Script Classification: ${artifact.epigraphicTranscript.script}\nRecovered Graphemes/Glyphs: ${artifact.epigraphicTranscript.originalGraphemes}\nDeciphered English Translation: "${artifact.epigraphicTranscript.englishTranslation}"`;
+        drawSection("3b. Epigraphic Graphemes & Deciphered Inscription", epigraphText);
+      }
+
+      drawSection("4. Cultural and Ritual Significance", artifact.culturalSignificance || "Subject has exceptional cultural correlation relative to standard regional registers.");
+      drawSection("5. Social and Administrative Structures Infers", artifact.socialStructureInference || "No social organization descriptors logged currently.");
+      
+      // NEW: Calibrated dating & degradation profile
+      if (artifact.calibratedAgeRange || artifact.visualDegradationIndex) {
+        const chronText = `Dating Paradigm / Age Range: ${artifact.calibratedAgeRange || 'N/A'}\nVisual Degradation Index: ${artifact.visualDegradationIndex || 'Minor crystal friction detected.'}`;
+        drawSection("5a. Laboratory Degradation and Age-Range Profile", chronText);
+      }
+
+      // Geological Context Details
+      if (artifact.stratigraphy || artifact.stratigraphicContext) {
+        const geoText = artifact.stratigraphy 
+          ? `Stratigraphical excavation depth layer details: Layer Code [${artifact.stratigraphy.layer}] found at [${artifact.stratigraphy.depth}m] deep within geological bedrock. Note: ${artifact.stratigraphy.description}`
+          : `Lithospheric Environment: ${artifact.stratigraphicContext?.environment}. Layer matrix: ${artifact.stratigraphicContext?.layer}. Preservation State: ${artifact.stratigraphicContext?.preservationState}`;
+        drawSection("6. Geomorphology and Stratigraphic Context", geoText);
+      }
+
+      // NEW: Neural Classifier annotations
+      if (artifact.neuralAnnotations) {
+        const annText = `OCR Neural Transcription: ${artifact.neuralAnnotations.ocrTranscription || 'N/A'}\nProvenance Prediction: ${artifact.neuralAnnotations.provenancePrediction || 'N/A'}\nRestoration Description: ${artifact.neuralAnnotations.restorationDescription || 'N/A'}`;
+        drawSection("7. Neural Vision Classifier & Annotations Index", annText);
+      }
+
+      // NEW: Authoritative Provenance logs
+      if (artifact.provenanceChain && artifact.provenanceChain.length > 0) {
+        const provText = artifact.provenanceChain.map((p, idx) => {
+          const stepNum = idx + 1;
+          const formattedDate = new Date(p.timestamp).toLocaleDateString('en-US', { hour: '2-digit', minute: '2-digit' });
+          return `[Step ${stepNum}] Action: ${p.step} | Operator: ${p.actor} | Time: ${formattedDate} | Block Hash: ${p.hash}`;
+        }).join("\n");
+        drawSection("8. Authoritative Chain of Custody & Blockchain Logs", provText);
+      }
+
+      // NEW: Peer Comments
+      if (artifact.comments && artifact.comments.length > 0) {
+        const commentsText = artifact.comments.map((c, idx) => {
+          const formattedDate = new Date(c.timestamp).toLocaleDateString('en-US', { hour: '2-digit', minute: '2-digit' });
+          return `${idx + 1}. Operator [${c.userName}] (${formattedDate}): "${c.text}"`;
+        }).join("\n");
+        drawSection("9. Peer Review Comments & Collaborative Scholarly Links", commentsText);
+      }
+
+      // NEW: Dialogue transcripts
+      if (chatHistory && chatHistory.length > 0) {
+        const chatText = chatHistory.map((h) => {
+          return `${h.role === 'user' ? 'Operator' : 'Historian AI'}: ${h.content}`;
+        }).join("\n\n");
+        drawSection("10. Decipherment Dialogues & Interactive AI Queries", chatText);
+      }
+
+      // NEW: Appendix Plate Images
+      if (artifact.extraImages && artifact.extraImages.length > 0) {
+        if (y > 200) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(79, 70, 229);
+        doc.text("APPENDIX - ARCHEOMIND SPECTRAL SURVEY IMAGES (EXTRA PERSPECTIVES)", 14, y);
+        doc.setDrawColor(224, 231, 255);
+        doc.setLineWidth(0.3);
+        doc.line(14, y + 2, 196, y + 2);
+        y += 8;
+
+        let xPos = 14;
+        for (const extraImgUrl of artifact.extraImages) {
+          if (y > 240) {
+            doc.addPage();
+            y = 20;
+          }
+          const extraImgData = await getBase64Image(extraImgUrl);
+          if (extraImgData) {
+            try {
+              doc.addImage(extraImgData, 'JPEG', xPos, y, 50, 50);
+              doc.setDrawColor(226, 232, 240);
+              doc.setLineWidth(0.3);
+              doc.rect(xPos, y, 50, 50, 'D');
+              xPos += 60;
+              if (xPos > 150) {
+                xPos = 14;
+                y += 55;
+              }
+            } catch (e) {
+              console.warn("Could not insert extra image into PDF:", e);
+            }
+          }
+        }
+        if (xPos !== 14) {
+          y += 55;
+        }
+      }
+      
+      // Footer integrity seal
+      if (y > 265) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(14, 275, 196, 275);
+      
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184); // Slate 400
+      doc.text(`ArcheoMind Index Digital Seal - Reference: #${(artifact.id || "N/A").toUpperCase()}`, 14, 281);
+      doc.text(`Scholarly Dossier Registered Under Academic Operator: ${artifact.userName || 'System Auto-Register'} - UTC Trace Time: ${new Date().toISOString()}`, 14, 285);
+      
+      // Compile and download file named with the artifact
+      const safeName = (artifact.name || "unnamed").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      doc.save(`${safeName}_dossier.pdf`);
+    } catch (e) {
+      console.error("Critical report export pipeline failure:", e);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   return (
@@ -199,10 +540,15 @@ export default function DiscoveryDetails({ artifact, onClose, currentUser, onUpd
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={handleExport}
-               className="p-4 glass-effect bg-indigo-600 text-white rounded-2xl transition-all shadow-xl shadow-indigo-200 border-indigo-400"
-               title="Export Neural Dossier"
+               disabled={isGeneratingPDF}
+               className={`p-4 glass-effect rounded-2xl transition-all shadow-xl border-indigo-400 ${isGeneratingPDF ? 'bg-indigo-400 text-indigo-100 cursor-not-allowed' : 'bg-indigo-600 text-white shadow-indigo-200'}`}
+               title={isGeneratingPDF ? "Generating Dossier..." : "Export Neural Dossier"}
              >
-               <Download className="w-6 h-6" />
+               {isGeneratingPDF ? (
+                 <Loader2 className="w-6 h-6 animate-spin" />
+               ) : (
+                 <Download className="w-6 h-6" />
+               )}
              </motion.button>
              <motion.button 
                whileHover={{ scale: 1.05, rotate: 90 }}
