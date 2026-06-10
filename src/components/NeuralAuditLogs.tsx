@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { History, User, Clock, Fingerprint, Search } from 'lucide-react';
+import { History, User, Clock, Fingerprint, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { storage } from '../services/storageService';
 import { AuditLog } from '../types';
 
 const NeuralAuditLogs: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [filter, setFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const unsubscribe = storage.subscribeToAuditLogs(setLogs);
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
   const filteredLogs = logs.filter(log => 
     (log.action || '').toLowerCase().includes(filter.toLowerCase()) ||
     (log.userName || '').toLowerCase().includes(filter.toLowerCase()) ||
     (log.targetName || '').toLowerCase().includes(filter.toLowerCase())
   );
+
+  const sortedLogs = [...filteredLogs].sort((a, b) => b.timestamp - a.timestamp);
+  const totalPages = Math.ceil(sortedLogs.length / 10) || 1;
+  const currentLogs = sortedLogs.slice((currentPage - 1) * 10, currentPage * 10);
 
   return (
     <div className="space-y-10">
@@ -51,7 +60,7 @@ const NeuralAuditLogs: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredLogs.length === 0 ? (
+            {currentLogs.length === 0 ? (
                <tr>
                   <td colSpan={5} className="px-8 py-20 text-center">
                      <div className="flex flex-col items-center gap-4 text-slate-400">
@@ -61,7 +70,7 @@ const NeuralAuditLogs: React.FC = () => {
                   </td>
                </tr>
             ) : (
-              filteredLogs.map((log, idx) => (
+              currentLogs.map((log, idx) => (
                 <motion.tr
                   key={log.id}
                   initial={{ opacity: 0, y: 5 }}
@@ -116,10 +125,53 @@ const NeuralAuditLogs: React.FC = () => {
         </table>
       </div>
 
-      <div className="flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Showing {filteredLogs.length} of {logs.length} System Vector Logs
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-8 py-5 bg-slate-50 rounded-2xl border border-slate-100">
+         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center sm:text-left">
+            Showing {sortedLogs.length === 0 ? 0 : (currentPage - 1) * 10 + 1}-{Math.min(sortedLogs.length, currentPage * 10)} of {sortedLogs.length} Log Entries (Page {currentPage} of {totalPages})
          </div>
+         
+         {totalPages > 1 && (
+           <div className="flex items-center gap-2">
+              <button
+                 disabled={currentPage === 1}
+                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                 className={`p-2 rounded-xl transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed text-slate-400' : 'bg-white border border-slate-200 text-slate-700 hover:border-indigo-400 hover:text-indigo-600 shadow-sm'}`}
+              >
+                 <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                 if (totalPages > 5 && Math.abs(pageNum - currentPage) > 1 && pageNum !== 1 && pageNum !== totalPages) {
+                    if (pageNum === 2 || pageNum === totalPages - 1) {
+                       return <span key={pageNum} className="text-slate-300 text-xs px-1">...</span>;
+                    }
+                    return null;
+                 }
+                 return (
+                    <button
+                       key={pageNum}
+                       onClick={() => setCurrentPage(pageNum)}
+                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          currentPage === pageNum 
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' 
+                          : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600 shadow-sm'
+                       }`}
+                    >
+                       {pageNum}
+                    </button>
+                 );
+              })}
+              
+              <button
+                 disabled={currentPage === totalPages}
+                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                 className={`p-2 rounded-xl transition-all ${currentPage === totalPages ? 'opacity-30 cursor-not-allowed text-slate-400' : 'bg-white border border-slate-200 text-slate-700 hover:border-indigo-400 hover:text-indigo-600 shadow-sm'}`}
+              >
+                 <ChevronRight className="w-4 h-4" />
+              </button>
+           </div>
+         )}
+
          <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline">
             Export JSON Archive
          </button>

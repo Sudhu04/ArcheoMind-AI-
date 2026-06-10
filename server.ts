@@ -632,6 +632,7 @@ app.post('/api/gemini/run', async (req, res) => {
         ];
 
         let result;
+        let modelUsed = "Gemini 3.5 Flash";
         try {
             try {
                 result = await ai.models.generateContent({
@@ -639,6 +640,7 @@ app.post('/api/gemini/run', async (req, res) => {
                     contents,
                     config
                 });
+                modelUsed = "Gemini 3.5 Flash";
             } catch (primError: any) {
                 console.log("ℹ️ Re-routing primary query through secondary flash channel...");
                 result = await ai.models.generateContent({
@@ -646,6 +648,7 @@ app.post('/api/gemini/run', async (req, res) => {
                     contents,
                     config
                 });
+                modelUsed = "Gemini 3.1 Flash Lite";
             }
 
             if (!result.text) {
@@ -663,7 +666,7 @@ app.post('/api/gemini/run', async (req, res) => {
                 }
             }
 
-            return res.json({ result: parsedResult });
+            return res.json({ result: parsedResult, modelUsed });
         } catch (apiError: any) {
             const isQuotaError = apiError?.message?.includes("429") || apiError?.message?.includes("quota") || apiError?.message?.includes("RESOURCE_EXHAUSTED");
             if (isQuotaError) {
@@ -712,7 +715,7 @@ app.post('/api/gemini/run', async (req, res) => {
                     } catch (e) {}
                 }
                 console.log("✅ Successfully recovered server-side via NVIDIA backup.");
-                return res.json({ result: parsed });
+                return res.json({ result: parsed, modelUsed: options?.image ? "Llama 3.2 Vision" : "Llama 3.1" });
             } catch (nvErr) {
                 console.warn("⚠️ NVIDIA backup failed, moving to OpenRouter last resort fallback.", nvErr);
             }
@@ -728,7 +731,7 @@ app.post('/api/gemini/run', async (req, res) => {
                         "X-Title": "ArcheoMind"
                     },
                     body: JSON.stringify({
-                        model: "google/gemini-2.0-flash-001",
+                        model: "google/gemini-2.5-flash",
                         messages: [{
                             role: "user",
                             content: options?.image ? [
@@ -755,7 +758,7 @@ app.post('/api/gemini/run', async (req, res) => {
                     } catch (e) {}
                 }
                 console.log("✅ Successfully recovered server-side via OpenRouter backup.");
-                return res.json({ result: parsed });
+                return res.json({ result: parsed, modelUsed: "Gemini 2.0 Flash" });
             } catch (orErr) {
                 console.log("ℹ️ OpenRouter backup routing complete.");
             }
@@ -889,6 +892,7 @@ JSON Structure:
             try {
                 const ai = new GoogleGenAI({ apiKey });
                 let response;
+                let modelUsed = "Gemini 3.5 Flash";
                 try {
                     response = await ai.models.generateContent({
                         model: "gemini-3.5-flash",
@@ -902,6 +906,7 @@ JSON Structure:
                         ],
                         config: { responseMimeType: "application/json" }
                     });
+                    modelUsed = "Gemini 3.5 Flash";
                 } catch (primErr) {
                     console.log("ℹ️ Re-routing primary vision query through secondary flash channel...");
                     response = await ai.models.generateContent({
@@ -916,10 +921,11 @@ JSON Structure:
                         ],
                         config: { responseMimeType: "application/json" }
                     });
+                    modelUsed = "Gemini 3.1 Flash Lite";
                 }
 
                 if (response.text) {
-                    return JSON.parse(response.text.trim());
+                    return { result: JSON.parse(response.text.trim()), modelUsed };
                 }
             } catch (geminiError: any) {
                 console.log("ℹ️ Vision lookup transitioning to backup providers.");
@@ -958,7 +964,7 @@ JSON Structure:
                 const text = data.choices?.[0]?.message?.content || "";
                 if (text) {
                     console.log("✅ Successfully recovered vision identification via NVIDIA fallback.");
-                    return JSON.parse(text.trim());
+                    return { result: JSON.parse(text.trim()), modelUsed: "Llama 3.2 Vision" };
                 }
             } else {
                 console.warn(`⚠️ NVIDIA fallback response not OK: ${response.status} ${response.statusText}`);
@@ -979,7 +985,7 @@ JSON Structure:
                     "X-Title": "ArcheoMind"
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.0-flash-001",
+                    model: "google/gemini-2.5-flash",
                     messages: [{
                         role: "user",
                         content: [
@@ -996,7 +1002,7 @@ JSON Structure:
                 const text = data.choices?.[0]?.message?.content || "";
                 if (text) {
                     console.log("✅ Successfully recovered vision identification via OpenRouter fallback.");
-                    return JSON.parse(text.trim());
+                    return { result: JSON.parse(text.trim()), modelUsed: "Gemini 2.0 Flash" };
                 }
             } else {
                 console.warn(`⚠️ OpenRouter fallback response not OK: ${response.status} ${response.statusText}`);
@@ -1037,17 +1043,20 @@ app.post('/api/scan/indian-heritage', async (req, res) => {
         }
 
         let bestMatch = null;
+        let scanModelUsed = "Offline Pool Match";
 
         // Try to identify using realtime vision lookup (simulated fetching details via internet/knowledge bases)
-        const identified = await identifyIndianArtifactRealtime(base64);
-        if (identified) {
+        const identifiedResponse = await identifyIndianArtifactRealtime(base64);
+        if (identifiedResponse) {
+            const { result: identified, modelUsed } = identifiedResponse;
+            scanModelUsed = modelUsed;
             bestMatch = {
                 ...identified,
                 id: `ind-live-${finalHash % 500000}`,
                 timestamp: Date.now(),
                 isVerified: true
             };
-            console.log("🌐 Realtime Indian Heritage Vision Identification Succeeded for: " + bestMatch.name);
+            console.log(`🌐 Realtime Indian Heritage Vision Identification Succeeded for: ${bestMatch.name} via ${modelUsed}`);
         } else {
             // Fallback to offline scoring pool of 5,000 deterministic records
             const allRecords = loadIndianDataset();
@@ -1183,7 +1192,10 @@ app.post('/api/scan/indian-heritage', async (req, res) => {
             }
         };
 
-        res.json(matchResponse);
+        const cachedPayload = { result: matchResponse, modelUsed: scanModelUsed };
+        liveScanCache.set(cacheKey, cachedPayload);
+
+        res.json(cachedPayload);
     } catch (err: any) {
         console.error("Indian Heritage Scan API error: ", err);
         res.status(500).json({ error: err.message });

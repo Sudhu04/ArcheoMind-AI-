@@ -8,6 +8,33 @@ const USER_PROVIDED_KEY = "AIzaSyDB0QruIJXGlyDCxwTIg6y_ofiVdfLva5E";
 const FALLBACK_KEY = "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";
 const DEFAULT_MODEL = "gemini-3.5-flash";
 
+// --- DYNAMIC ACTIVE MODEL SUBSCRIBER SYSTEM ---
+let lastUsedModel = "Gemini 3.5 Flash";
+const modelListeners: Set<(model: string) => void> = new Set();
+
+export function setLastUsedModel(model: string) {
+  lastUsedModel = model;
+  modelListeners.forEach(listener => {
+    try {
+      listener(model);
+    } catch (e) {
+      console.warn("⚠️ Error in model listener:", e);
+    }
+  });
+}
+
+export function getLastUsedModel() {
+  return lastUsedModel;
+}
+
+export function subscribeToModelChanges(callback: (model: string) => void) {
+  modelListeners.add(callback);
+  callback(lastUsedModel);
+  return () => {
+    modelListeners.delete(callback);
+  };
+}
+
 const getAIClient = () => {
     const overrideKey = typeof window !== 'undefined' ? localStorage.getItem('GEMINI_API_KEY_OVERRIDE') : null;
     const apiKey = overrideKey || USER_PROVIDED_KEY || process.env.GEMINI_API_KEY || '';
@@ -101,7 +128,7 @@ async function callNvidiaNim(prompt: string, options: { json?: boolean, image?: 
 }
 
 async function callOpenRouter(prompt: string, options: { json?: boolean, image?: { data: string, mimeType: string } } = {}) {
-  const model = "google/gemini-2.0-flash-001";
+  const model = "google/gemini-2.5-flash";
   const messages: any[] = [{
     role: "user",
     content: options.image ? [
@@ -156,21 +183,60 @@ export async function runAI(prompt: string, options: {
       const overrideKey = typeof window !== 'undefined' ? localStorage.getItem('GEMINI_API_KEY_OVERRIDE') : null;
       if (overrideKey) {
         const client = new GoogleGenAI({ apiKey: overrideKey });
-        const result = await client.models.generateContent({
-          model: DEFAULT_MODEL,
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                ...(options.image ? [{ inlineData: { data: options.image.data, mimeType: options.image.mimeType } }] : [])
-              ]
-            }
-          ],
-          config: options.json ? { responseMimeType: "application/json" } : undefined
-        });
+        let result;
+        let modelUsed = "Gemini 3.5 Flash";
+        
+        try {
+          result = await client.models.generateContent({
+            model: DEFAULT_MODEL,
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  ...(options.image ? [{ inlineData: { data: options.image.data, mimeType: options.image.mimeType } }] : [])
+                ]
+              }
+            ],
+            config: options.json ? { responseMimeType: "application/json" } : undefined
+          });
+          modelUsed = "Gemini 3.5 Flash";
+        } catch (localErr: any) {
+          console.warn("⚠️ Local Gemini 3.5 Flash failed, shifting to backup Gemini 3.1 Flash Lite...", localErr);
+          try {
+            result = await client.models.generateContent({
+              model: "gemini-3.1-flash-lite",
+              contents: [
+                {
+                  parts: [
+                    { text: prompt },
+                    ...(options.image ? [{ inlineData: { data: options.image.data, mimeType: options.image.mimeType } }] : [])
+                  ]
+                }
+              ],
+              config: options.json ? { responseMimeType: "application/json" } : undefined
+            });
+            modelUsed = "Gemini 3.1 Flash Lite";
+          } catch (secondErr: any) {
+            console.warn("⚠️ Local Gemini 3.1 Flash Lite failed, shifting to backup Gemini 1.5 Flash...", secondErr);
+            result = await client.models.generateContent({
+              model: "gemini-1.5-flash",
+              contents: [
+                {
+                  parts: [
+                    { text: prompt },
+                    ...(options.image ? [{ inlineData: { data: options.image.data, mimeType: options.image.mimeType } }] : [])
+                  ]
+                }
+              ],
+              config: options.json ? { responseMimeType: "application/json" } : undefined
+            });
+            modelUsed = "Gemini 1.5 Flash";
+          }
+        }
 
         if (!result.text) throw new Error("Empty Gemini response");
         usageService.recordGemini(result.usageMetadata?.totalTokenCount || 500); // Record usage
+        setLastUsedModel(modelUsed);
         return options.json ? JSON.parse(result.text) : result.text;
       }
 
@@ -193,6 +259,13 @@ export async function runAI(prompt: string, options: {
         throw new Error(data.error);
       }
       usageService.recordGemini(400); // Record average proxy usage
+      
+      if (data.modelUsed) {
+        setLastUsedModel(data.modelUsed);
+      } else {
+        setLastUsedModel("Gemini 3.5 Flash");
+      }
+      
       return data.result;
     } catch (error) {
       console.log("ℹ️ Standard route query processing standard backup fallback.");
@@ -205,6 +278,7 @@ export async function runAI(prompt: string, options: {
   try {
     console.log("ℹ️ Initiating query routing cascade option...");
     const nvidiaResult = await callNvidiaNim(prompt, options);
+    setLastUsedModel(options.image ? "Llama 3.2 Vision" : "Llama 3.1");
     return options.json ? (typeof nvidiaResult === 'string' ? JSON.parse(nvidiaResult) : nvidiaResult) : nvidiaResult;
   } catch (nvidiaError) {
     console.log("ℹ️ Advancing sequence routing option fallback.");
@@ -213,11 +287,13 @@ export async function runAI(prompt: string, options: {
     try {
       console.log("ℹ ...Initiated route mapping...");
       const openRouterResult = await callOpenRouter(prompt, options);
+      setLastUsedModel("Gemini 2.0 Flash");
       return options.json ? (typeof openRouterResult === 'string' ? JSON.parse(openRouterResult) : openRouterResult) : openRouterResult;
     } catch (openRouterError) {
       console.log("ℹ️ Sequence query routing completed.");
       if (options.fallbackValue !== undefined) {
         console.log("ℹ️ Recovered with offline structural cache.");
+        setLastUsedModel("Offline Cache");
         return options.fallbackValue;
       }
       throw openRouterError;

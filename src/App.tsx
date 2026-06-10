@@ -12,7 +12,6 @@ import BentoMuseum from './components/BentoMuseum';
 import DiscoveryDetails from './components/DiscoveryDetails';
 import ResonanceAnalyzer from './components/ResonanceAnalyzer';
 import ArchaeologicalTimeline from './components/ArchaeologicalTimeline';
-import AIBriefing from './components/AIBriefing';
 import ComparativeAnalyzer from './components/ComparativeAnalyzer';
 import NotificationSystem from './components/NotificationSystem';
 import ManualEntry from './components/ManualEntry';
@@ -395,7 +394,6 @@ export default function App() {
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-12"
                   >
-                    <AIBriefing artifacts={artifacts} currentUser={currentUser} />
                     <DailySynthesis artifacts={artifacts} />
 
                     <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">

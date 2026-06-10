@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Camera, Loader2, CheckCircle2, Plus, X, Sparkles, Layers, BookOpen, UserCheck, Search, ChevronLeft, ChevronRight, MapPin, Database } from 'lucide-react';
-import { analyzeArtifactImage, quickIdentify, analyzeIndianArtifactImage } from '../services/geminiService';
+import { analyzeArtifactImage, quickIdentify, analyzeIndianArtifactImage, subscribeToModelChanges, setLastUsedModel } from '../services/geminiService';
 import { storage } from '../services/storageService';
 import { Artifact } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -34,6 +34,14 @@ export default function ArtifactScanner({ onArtifactSaved, onManualEntry, curren
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState<'api' | 'dataset'>('dataset');
   const [localKeywords, setLocalKeywords] = useState('');
+  const [activeModel, setActiveModel] = useState<string>("Gemini 3.5 Flash");
+
+  useEffect(() => {
+    const unsubscribe = subscribeToModelChanges((model) => {
+      setActiveModel(model);
+    });
+    return unsubscribe;
+  }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const extraImagesRef = useRef<HTMLInputElement>(null);
 
@@ -80,7 +88,14 @@ export default function ArtifactScanner({ onArtifactSaved, onManualEntry, curren
         }
         
         const scanRes = await response.json();
-        setResult(scanRes);
+        if (scanRes && scanRes.result !== undefined) {
+          setResult(scanRes.result);
+          if (scanRes.modelUsed) {
+            setLastUsedModel(scanRes.modelUsed);
+          }
+        } else {
+          setResult(scanRes);
+        }
       } else {
         try {
           const analysis = await analyzeArtifactImage(base64);
@@ -334,7 +349,7 @@ export default function ArtifactScanner({ onArtifactSaved, onManualEntry, curren
                       Override: Manual Entry
                     </button>
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em] max-w-xs text-center leading-relaxed">
-                      Deep Learning Models powered by Gemini 1.5 Flash
+                      Deep Learning Models powered by {activeModel}
                     </p>
                   </div>
                 </div>
