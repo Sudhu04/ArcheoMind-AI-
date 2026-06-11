@@ -325,7 +325,7 @@ export interface ArtifactAnalysis {
   };
 }
 
-function getMockAnalysis(name: string = "Ancient Specimen [Simulation Mode]"): ArtifactAnalysis {
+function getMockAnalysis(name: string = "Ancient Specimen (Simulation Mode)"): ArtifactAnalysis {
   return {
     name: name,
     civilization: "Pre-AI Era (Simulated)",
@@ -364,7 +364,7 @@ export async function analyzeArtifactImage(base64Image: string): Promise<Artifac
   return runAI(prompt, { 
     json: true, 
     image: { data: base64Data, mimeType },
-    fallbackValue: getMockAnalysis("Ancient Discovery [Local Cache Mode]")
+    fallbackValue: getMockAnalysis("Ancient Discovery (Local Cache Mode)")
   });
 }
 
@@ -445,7 +445,7 @@ export async function analyzeIndianArtifactImage(base64Image: string): Promise<A
   return runAI(prompt, { 
     json: true, 
     image: { data: base64Data, mimeType },
-    fallbackValue: getMockAnalysis("Indian Heritage Specimen [Local Cache Mode]")
+    fallbackValue: getMockAnalysis("Indian Heritage Specimen (Local Cache Mode)")
   });
 }
 

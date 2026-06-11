@@ -475,6 +475,28 @@ export default function ArtifactScanner({ onArtifactSaved, onManualEntry, curren
                           <span>{result.estimatedEra}</span>
                         </div>
                         <h3 className="text-7xl font-black text-slate-900 tracking-tighter font-display leading-[0.9]">{result.name}</h3>
+                        
+                        {result.name.toLowerCase().includes("local cache") && (
+                          <div className="p-5 bg-amber-50 border border-amber-200/60 rounded-3xl text-amber-900 text-xs font-medium space-y-2 leading-relaxed animate-in fade-in duration-300">
+                            <div className="flex items-center gap-2 font-black text-[10px] text-amber-700 uppercase tracking-widest">
+                              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                              Local Fallback Active
+                            </div>
+                            <p>
+                              You are seeing this simulated result because a valid <code className="px-1.5 py-0.5 bg-amber-100/80 rounded font-mono font-bold text-amber-800">GEMINI_API_KEY</code> is not configured on your local server environment. 
+                            </p>
+                            <p className="text-[11px] text-slate-500 font-bold">
+                              To activate live scanning, please create a <code className="px-1.5 py-0.5 bg-slate-100 rounded font-mono">.env</code> file in your project root with your credentials:
+                            </p>
+                            <pre className="p-3 bg-slate-900 text-slate-300 rounded-xl font-mono text-[10px] whitespace-pre-wrap select-all">
+                              GEMINI_API_KEY="your_api_key_here"
+                            </pre>
+                            <p className="text-[11px] text-slate-500">
+                              After updating your <code className="px-1.5 py-0.5 bg-slate-100 rounded font-mono">.env</code> file, restart your local server!
+                            </p>
+                          </div>
+                        )}
+
                         <p className="text-slate-500 leading-relaxed text-lg font-medium max-w-xl">
                           {result.description}
                         </p>
