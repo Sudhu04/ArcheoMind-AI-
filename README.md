@@ -16,6 +16,17 @@ Designed to operate securely both in cloud-native deployments and completely off
 
 ---
 
+## 🌐 Live Project Demo & Sandboxes
+
+You can access and interact with the live deployed versions of the application instantly via the following cloud-native environments:
+
+*   **⚡ Deployed Production Gateway**: [https://ais-pre-67l5w7bht5mqdkeuxhi2xv-58121586971.asia-southeast1.run.app](https://ais-pre-67l5w7bht5mqdkeuxhi2xv-58121586971.asia-southeast1.run.app)
+*   **🛠️ Interactive Sandbox / Dev Portal**: [https://ais-dev-67l5w7bht5mqdkeuxhi2xv-58121586971.asia-southeast1.run.app](https://ais-dev-67l5w7bht5mqdkeuxhi2xv-58121586971.asia-southeast1.run.app)
+
+Both environments are fully integrated with our hybrid NoSQL storage stack, real-time scholastic chat, automated forensic radiography radars, and physical database fallback nodes.
+
+---
+
 ## 📖 Core Concepts & Mission Details
 
 ### 🏛️ Standard Archaeology vs. Digital-Forensic Neural Archaeology
