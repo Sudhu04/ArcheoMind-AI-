@@ -30,12 +30,38 @@ const GlobalChat: React.FC<GlobalChatProps> = ({ currentUser }) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    const textToSend = inputText.trim();
+    setInputText('');
+
     await storage.sendChatMessage({
       userId: currentUser.id,
       userName: currentUser.name,
-      text: inputText.trim()
+      text: textToSend
     });
-    setInputText('');
+
+    // Schedule a conversational response from one of our expert AI researchers
+    setTimeout(async () => {
+      try {
+        const syntheticExperts = [
+          { id: "bot-aiden", name: "A.I.D.E.N. [Consensus System]" },
+          { id: "bot-vance", name: "Dr. Evelyn Vance [Epigraphist]" },
+          { id: "bot-mehta", name: "Prof. Rajan Mehta [Metallurgist]" },
+          { id: "bot-durand", name: "Dr. Chloe Durand [Botanist]" }
+        ];
+        const expert = syntheticExperts[Math.floor(Math.random() * syntheticExperts.length)];
+
+        const { getGlobalChatResponse } = await import('../services/geminiService');
+        const replyText = await getGlobalChatResponse(textToSend, currentUser.name);
+
+        await storage.sendChatMessage({
+          userId: expert.id,
+          userName: expert.name,
+          text: replyText
+        });
+      } catch (err) {
+        console.error("Failed to generate bot response:", err);
+      }
+    }, 1500);
   };
 
   return (

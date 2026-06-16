@@ -21,7 +21,6 @@ import NeuralPulse from './components/NeuralPulse';
 import AchievementMatrix from './components/AchievementMatrix';
 import GlobalChat from './components/GlobalChat';
 import ResearcherLeaderboard from './components/ResearcherLeaderboard';
-import VoiceSearchOverlay from './components/VoiceSearchOverlay';
 import NeuralComparator from './components/NeuralComparator';
 import ResearchBounties from './components/ResearchBounties';
 import DailySynthesis from './components/DailySynthesis';
@@ -52,7 +51,6 @@ import {
   Library,
   Beaker,
   Zap,
-  Mic,
   Moon,
   Sun,
   ArrowRightLeft
@@ -70,7 +68,6 @@ export default function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -364,12 +361,6 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-4">
-                 <button 
-                    onClick={() => setIsVoiceActive(!isVoiceActive)}
-                    className={`p-3 rounded-full transition-all border shadow-sm ${isVoiceActive ? 'bg-rose-500 text-white border-rose-400 animate-pulse' : theme === 'dark' ? 'bg-slate-800 text-slate-400 border-slate-700 hover:text-indigo-400' : 'bg-white text-slate-400 border-slate-100 hover:text-indigo-600'}`}
-                  >
-                    <Mic className="w-4 h-4" />
-                  </button>
                   <NotificationSystem />
                   <button 
                     onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
@@ -724,10 +715,6 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <VoiceSearchOverlay 
-              isOpen={isVoiceActive} 
-              onClose={() => setIsVoiceActive(false)} 
-            />
           </div>
         </main>
       </motion.div>
